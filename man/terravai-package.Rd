@@ -22,7 +22,9 @@ decision would flip, and where new data would be worth the most.
    uncertain with [dm_uncertain()]; route loads with [dm_outlet_load()].
    For any region, run the raster chain with [dm_erosion_raster()] and use
    the look-up tables [dm_cn_table()], [dm_texture_class()],
-   [dm_hsg_texture()] and [dm_p_factor()].
+   [dm_hsg_texture()] and [dm_p_factor()]. Indian standards:
+   [dm_psd_isss()], [dm_psd_is1498()], [dm_shc_rating()],
+   [dm_erosivity_india()], [dm_slope_class_india()] and [dm_erosion_class()].
 1. Describe predictions with [dm_gaussian()], [dm_draws()],
    [dm_quantiles()] or [dm_conformal()], fit a quantile regression forest
    with [dm_fit_qrf()], or fit kriging with [dm_fit_cov()] and [dm_krige()].

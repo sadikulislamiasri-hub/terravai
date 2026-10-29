@@ -25,7 +25,10 @@ used in conservation planning; supply site-specific limits where
 available (for shallow or degraded soils they are lower).
 }
 \details{
-Tolerable limits differ between soils and regions. For a map of
+Tolerable limits differ between soils and regions. In India, permissible
+limits of 2.5 to 12.5 t ha\eqn{^{-1}} yr\eqn{^{-1}} have been estimated
+for soil mapping units from soil quality indicators (Lenka, Mandal and
+Sudhishri, 2014, *Current Science* 107(4), for West Bengal). For a map of
 site-specific limits, decide on the ratio of soil loss to the local limit
 with `T_limit = 1` (see the example).
 }

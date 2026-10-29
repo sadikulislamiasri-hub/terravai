@@ -164,3 +164,33 @@ Curve numbers and hydrologic soil groups for any land use and soil:
 hsg <- dm_hsg_texture(sand = c(70, 35, 20), silt = c(20, 40, 35), clay = c(10, 25, 45))
 dm_cn_lookup(c("row_crops_contoured_good", "pasture_fair", "woods_fair"), hsg)
 ```
+
+## 10. Indian standards
+
+Laboratory particle-size data in the International system converted to USDA
+fractions, texture class and hydrologic soil group:
+
+```{r}
+usda <- dm_psd_isss(clay = 28, silt = 14, fine_sand = 38, coarse_sand = 20)
+usda
+dm_texture_class(usda$sand, usda$silt, usda$clay)
+dm_hsg_texture(usda$sand, usda$silt, usda$clay)
+```
+
+Soil Health Card ratings, erosivity from annual rainfall, slope and erosion
+classes:
+
+```{r}
+dm_shc_rating(c(180, 350, 620), "N")
+R <- dm_erosivity_india(c(900, 1400, 2200))
+R
+dm_slope_class_india(c(2, 8, 30), labels = TRUE)
+table(dm_erosion_class(soil$mean))
+```
+
+With an uncertain soil-loss map, the probability of each erosion class shows
+where the class is reliable:
+
+```{r}
+head(dm_erosion_class(soil))
+```

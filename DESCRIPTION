@@ -31,7 +31,9 @@ Description: Quantifies runoff, soil loss and nutrient loss with their
     to watershed outlets. A raster pipeline runs the soil-loss chain for any
     region on projected or geographic grids, with curve-number, soil-texture,
     hydrologic soil group and support-practice look-up tables for global
-    use. Any input can be uncertain, and the predictive
+    use, and Indian standards: particle-size conversion from the
+    International and Indian Standard systems, Soil Health Card ratings,
+    erosivity from annual rainfall, slope classes and erosion classes. Any input can be uncertain, and the predictive
     distribution of any spatial model, from kriging to artificial
     intelligence (AI) models such as quantile regression forests, deep
     ensembles and conformal predictors, can be used in place of a formula.

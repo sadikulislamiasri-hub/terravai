@@ -19,6 +19,16 @@ M Muruganandam and Rama Pal.
   * `dm_flow_accumulation()` (linear time) and `dm_outlet_load()`.
   * `dm_loss_tolerance()` and `dm_loss_nutrient()` decision presets.
   * `dm_simulate_watershed()`: example micro-watershed with known truth.
+* Indian standards:
+  * `dm_psd_isss()`, `dm_psd_is1498()`, `dm_psd_to_usda()`: convert
+    International (ISSS), Indian Standard IS 1498 or any particle-size data to
+    USDA fractions by log-linear interpolation.
+  * `dm_shc_table()`, `dm_shc_rating()`: Soil Health Card ratings (ICAR-IISS
+    limits), with class probabilities for uncertain maps.
+  * `dm_erosivity_india()`: erosivity from annual rainfall (Singh, Chandra and
+    Babu, 1981).
+  * `dm_slope_class_india()`: AIS&LUS slope classes A-I.
+  * `dm_erosion_class()`: erosion severity classes, default E0-E4 or custom.
 * Uncertainty and convergence:
   * `dm_uncertain(correlation = )`: input errors can be independent, common
     to all locations (e.g. a regional coefficient) or spatially correlated

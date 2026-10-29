@@ -58,6 +58,27 @@ dm_outlet_load(soil$mean, ws$to, delivery = 0.9, cell_area = 0.09)
 plot(dm_voi(soil, dm_loss_tolerance(), method = "ensemble", seed = 1))
 ```
 
+## Indian standards
+
+| Need | Function | Basis |
+|---|---|---|
+| Convert laboratory particle-size data to USDA fractions | `dm_psd_isss()`, `dm_psd_is1498()`, `dm_psd_to_usda()` | International (ISSS) system, Indian Standard IS 1498, any cumulative distribution |
+| USDA texture class and hydrologic soil group | `dm_texture_class()`, `dm_hsg_texture()` | USDA texture triangle |
+| Soil Health Card ratings (OC, N, P, K, S, Zn, Cu, Fe, Mn, B), with class probabilities for uncertain maps | `dm_shc_rating()`, `dm_shc_table()` | ICAR-IISS rating limits |
+| Rainfall erosivity from annual rainfall | `dm_erosivity_india()` | R = 79 + 0.363 P (Singh, Chandra and Babu, 1981) |
+| Slope classes A-I | `dm_slope_class_india()` | All India Soil and Land Use Survey |
+| Erosion severity classes E0-E4 (or your own scheme) | `dm_erosion_class()` | USLE-based erosion mapping in India |
+| Empirical N, P, K loss from runoff plots | `dm_nutrient_empirical()` | ICAR-IISWC experiments |
+| Site-specific tolerance limits | `dm_loss_tolerance()` | e.g. 2.5-12.5 t/ha/yr estimated for Indian mapping units |
+
+```r
+usda <- dm_psd_isss(clay = 28, silt = 14, fine_sand = 38, coarse_sand = 20)
+dm_texture_class(usda$sand, usda$silt, usda$clay)        # "clay loam"
+dm_shc_rating(c(180, 350, 620), "N")                       # low, medium, high
+R <- dm_erosivity_india(1400)                              # from annual rainfall
+dm_erosion_class(dm_rusle(R, 0.03, 3, 0.25))
+```
+
 ## Uncertainty you can trust
 
 * **Input uncertainty:** any input can be uncertain with `dm_uncertain()`, as
