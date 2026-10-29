@@ -58,6 +58,38 @@ dm_outlet_load(soil$mean, ws$to, delivery = 0.9, cell_area = 0.09)
 plot(dm_voi(soil, dm_loss_tolerance(), method = "ensemble", seed = 1))
 ```
 
+## Use anywhere: pan-India and global
+
+Every tool runs on any area with freely available data, on projected or
+longitude/latitude grids:
+
+```r
+library(terra)
+dem  <- rast("dem.tif")                 # e.g. SRTM / Copernicus DEM, or Bhuvan CartoDEM
+ndvi <- rast("ndvi.tif")                # e.g. Sentinel-2 or MODIS NDVI
+sand <- rast("sand.tif"); silt <- rast("silt.tif"); clay <- rast("clay.tif")
+soc  <- rast("soc.tif")                 # e.g. SoilGrids (g/kg, dg/kg) or national soil maps
+R    <- rast("erosivity.tif")           # national or global erosivity map
+
+out <- dm_erosion_raster(dem, R, ndvi = ndvi, sand = sand, silt = silt, clay = clay,
+                         soc = soc, texture_unit = "g_kg", soc_unit = "dg_kg")
+plot(out$A)                             # soil loss, t/ha/yr
+writeRaster(out, "soil_loss.tif")
+```
+
+| Need | Tools |
+|---|---|
+| Curve numbers for any land use and soil | `dm_cn_table()` (USDA TR-55), `dm_cn_lookup()` |
+| Hydrologic soil group where only texture is known | `dm_texture_class()` (USDA), `dm_hsg_texture()` |
+| Conservation practice factor | `dm_p_factor()` (contouring, strip cropping) |
+| Region-specific limits | `dm_loss_tolerance(T_limit = )`, or a site-specific tolerance map (see `?dm_loss_tolerance`) |
+| Large rasters | D8 routing and flow accumulation handle about a million cells in about a second |
+
+Regional coefficients that vary between places (rainfall erosivity relations,
+enrichment ratios, local C, P and curve-number tables, tolerance limits) are
+user inputs rather than hidden defaults, so the package applies equally to
+any state in India or any country.
+
 ## Quick start (general decision engine)
 
 ```r

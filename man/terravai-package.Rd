@@ -20,6 +20,9 @@ decision would flip, and where new data would be worth the most.
    [dm_fournier()]), [dm_musle()], [dm_nutrient_sediment()],
    [dm_nutrient_runoff()] and [dm_nutrient_empirical()]; make any input
    uncertain with [dm_uncertain()]; route loads with [dm_outlet_load()].
+   For any region, run the raster chain with [dm_erosion_raster()] and use
+   the look-up tables [dm_cn_table()], [dm_texture_class()],
+   [dm_hsg_texture()] and [dm_p_factor()].
 1. Describe predictions with [dm_gaussian()], [dm_draws()],
    [dm_quantiles()] or [dm_conformal()], fit a quantile regression forest
    with [dm_fit_qrf()], or fit kriging with [dm_fit_cov()] and [dm_krige()].

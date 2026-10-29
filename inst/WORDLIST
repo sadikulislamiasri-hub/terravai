@@ -8,7 +8,9 @@ CMD
 Chagumaira
 Choquet
 D8
+DEM
 Ehm
+Erodibility
 Erosivity
 Evensen
 Fournier
@@ -16,6 +18,7 @@ Gabriels
 Gammerman
 Gneiting
 Hermite
+Hydrologic
 ICAR
 IISWC
 Kalman
@@ -23,6 +26,7 @@ Knijff
 Knisel
 MFI
 MJ
+MODIS
 MUSLE
 Maidment
 Matern
@@ -37,9 +41,12 @@ Raiffa
 Runoff
 SCS
 SDR
+SRTM
 Schlaifer
+SoilGrids
 SoilRunNutri
 SpatRaster
+TR
 TerravAI
 USLE
 VOI
@@ -47,6 +54,7 @@ Vovk
 Weesies
 Wischmeier
 Yoder
+acc
 agro
 attr
 bayes
@@ -59,9 +67,11 @@ cov
 covmodel
 cv
 dem
+dg
 dm
 doi
 ed
+edn
 elev
 erodibility
 erosivity
@@ -69,6 +79,9 @@ evpi
 expectiles
 fournier
 fp
+hillslopes
+hsg
+hydrologic
 krige
 loglik
 m3

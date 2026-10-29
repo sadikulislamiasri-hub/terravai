@@ -103,17 +103,22 @@ dm_flow_accumulation <- function(to, weights = 1, delivery = 1) {
   d <- rep_len(as.numeric(delivery), n)
   indeg <- tabulate(to[to > 0], nbins = n)
   acc <- w
-  queue <- which(indeg == 0)
-  done <- 0L
-  while (length(queue)) {
-    u <- queue[1]; queue <- queue[-1]; done <- done + 1L
+  queue <- integer(n)                 # preallocated FIFO queue (linear time)
+  start <- which(indeg == 0L)
+  tail <- length(start)
+  queue[seq_len(tail)] <- start
+  head <- 0L
+  while (head < tail) {
+    head <- head + 1L
+    u <- queue[head]
     v <- to[u]
-    if (v > 0) {
+    if (v > 0L) {
       acc[v] <- acc[v] + acc[u] * d[u]
       indeg[v] <- indeg[v] - 1L
-      if (indeg[v] == 0L) queue <- c(queue, v)
+      if (indeg[v] == 0L) { tail <- tail + 1L; queue[tail] <- v }
     }
   }
+  done <- head
   if (done < n) stop("'to' contains a cycle.", call. = FALSE)
   acc
 }
@@ -418,6 +423,10 @@ dm_enrichment <- function(sediment, a, b, min_er = 1) {
 #' used in conservation planning; supply site-specific limits where
 #' available (for shallow or degraded soils they are lower).
 #'
+#' Tolerable limits differ between soils and regions. For a map of
+#' site-specific limits, decide on the ratio of soil loss to the local limit
+#' with `T_limit = 1` (see the example).
+#'
 #' @param T_limit Tolerable soil loss (t ha\eqn{^{-1}} yr\eqn{^{-1}}).
 #' @param ratio Cost of leaving an eroding area untreated relative to the cost
 #'   of treating an area that did not need it.
@@ -425,6 +434,9 @@ dm_enrichment <- function(sediment, a, b, min_er = 1) {
 #' @return A `dm_loss` object.
 #' @examples
 #' dm_loss_tolerance()
+#' # site-specific limits: decide on soil loss / local limit
+#' loss <- c(6, 9, 14); local_T <- c(5, 12.5, 10)
+#' dm_decide(dm_gaussian(loss / local_T, sd = 0.2), dm_loss_tolerance(T_limit = 1))
 #' @export
 dm_loss_tolerance <- function(T_limit = 11.2, ratio = 3, type = c("fixed", "linear")) {
   dm_loss(T_limit, "above", ratio = ratio, type = match.arg(type),

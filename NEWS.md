@@ -19,6 +19,14 @@ M Muruganandam and Rama Pal.
   * `dm_flow_accumulation()` (linear time) and `dm_outlet_load()`.
   * `dm_loss_tolerance()` and `dm_loss_nutrient()` decision presets.
   * `dm_simulate_watershed()`: example micro-watershed with known truth.
+* Use anywhere (pan-India and global):
+  * `dm_erosion_raster()`: RUSLE chain on rasters for any region, on
+    projected or longitude/latitude grids, with SoilGrids units supported.
+  * `dm_cn_table()` and `dm_cn_lookup()` (USDA TR-55 curve numbers),
+    `dm_texture_class()` (USDA texture classes), `dm_hsg_texture()`,
+    `dm_p_factor()` (Wischmeier and Smith support-practice factors).
+  * Vectorised D8 flow directions and linear-time flow accumulation (about a
+    million cells per second).
   * New vignette on runoff, soil loss and nutrient loss.
 * Predictive distributions from means and standard deviations, covariance
   matrices, simulation draws or `terra` rasters.

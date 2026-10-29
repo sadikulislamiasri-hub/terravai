@@ -110,23 +110,24 @@ dm_flow_from_dem <- function(elev) {
   }
   elev <- as.matrix(elev)
   nr <- nrow(elev); nc <- ncol(elev)
-  to <- rep(NA_integer_, nr * nc)
+  # vectorised D8: compare every cell with its 8 neighbours at once
+  pad <- matrix(NA_real_, nr + 2, nc + 2)
+  pad[2:(nr + 1), 2:(nc + 1)] <- elev
   dr <- c(-1, -1, -1, 0, 0, 1, 1, 1); dc <- c(-1, 0, 1, -1, 1, -1, 0, 1)
   dd <- sqrt(dr^2 + dc^2)
-  for (j in seq_len(nc)) for (i in seq_len(nr)) {
-    z <- elev[i, j]
-    if (is.na(z)) next
-    best <- 0; bk <- NA_integer_
-    for (k in 1:8) {
-      ii <- i + dr[k]; jj <- j + dc[k]
-      if (ii < 1 || ii > nr || jj < 1 || jj > nc) next
-      zn <- elev[ii, jj]
-      if (is.na(zn)) next
-      slope <- (z - zn) / dd[k]
-      if (slope > best) { best <- slope; bk <- (jj - 1L) * nr + ii }
-    }
-    to[(j - 1L) * nr + i] <- bk
+  S <- matrix(-Inf, nr * nc, 8)
+  for (k in 1:8) {
+    nb <- pad[(2:(nr + 1)) + dr[k], (2:(nc + 1)) + dc[k]]
+    sl <- (elev - nb) / dd[k]
+    sl[is.na(sl)] <- -Inf
+    S[, k] <- as.numeric(sl)
   }
+  best <- max.col(S, ties.method = "first")
+  smax <- S[cbind(seq_len(nr * nc), best)]
+  ii <- rep(seq_len(nr), nc) + dr[best]
+  jj <- rep(seq_len(nc), each = nr) + dc[best]
+  to <- as.integer((jj - 1L) * nr + ii)
+  to[!(smax > 0) | is.na(as.numeric(elev))] <- NA_integer_
   to
 }
 

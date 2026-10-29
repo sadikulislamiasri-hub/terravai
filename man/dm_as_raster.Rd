@@ -23,11 +23,13 @@ rasters, the original grid is reused; otherwise a grid is built from
 regularly spaced coordinates.
 }
 \examples{
+\donttest{
 if (requireNamespace("terra", quietly = TRUE)) {
   sim <- dm_simulate(n_side = 10, n_obs = 20, seed = 8)
   fit <- dm_krige(sim$obs[, c("x", "y")], sim$obs$z, sim$grid[, c("x", "y")],
                   model = sim$model)
   r <- dm_as_raster(dm_decide(fit, dm_loss(0, "above")))
   r
+}
 }
 }

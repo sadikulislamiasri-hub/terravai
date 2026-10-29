@@ -28,7 +28,10 @@ Description: Quantifies runoff, soil loss and nutrient loss with their
     Universal Soil Loss Equation, nutrient loss by mass balance with
     enrichment ratios, empirical nitrogen, phosphorus and potassium loss
     equations from Indian runoff-plot experiments, and flow routing of loads
-    to watershed outlets. Any input can be uncertain, and the predictive
+    to watershed outlets. A raster pipeline runs the soil-loss chain for any
+    region on projected or geographic grids, with curve-number, soil-texture,
+    hydrologic soil group and support-practice look-up tables for global
+    use. Any input can be uncertain, and the predictive
     distribution of any spatial model, from kriging to artificial
     intelligence (AI) models such as quantile regression forests, deep
     ensembles and conformal predictors, can be used in place of a formula.

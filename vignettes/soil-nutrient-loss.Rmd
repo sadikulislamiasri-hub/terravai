@@ -133,3 +133,24 @@ summary(ev)
 
 AI models trained on runoff-plot data (`dm_fit_qrf()`, `dm_conformal()`) can be
 compared in the same way, and their predictions used in every step above.
+
+## 9. Your own region
+
+The same chain runs on real rasters anywhere, from a district in India to a
+whole country, on projected or longitude/latitude grids:
+
+```{r, eval = requireNamespace("terra", quietly = TRUE)}
+dem <- terra::rast(nrows = 40, ncols = 40, xmin = 78, xmax = 78.04,
+                   ymin = 30, ymax = 30.04, crs = "EPSG:4326")
+terra::values(dem) <- as.numeric(outer(1:40, 1:40, function(i, j) 700 + 5 * i + 2 * j))
+out <- dm_erosion_raster(dem, R = 900, ndvi = terra::init(dem, 0.35), K = 0.03,
+                         P = dm_p_factor("contouring", 6))
+terra::global(out[["A"]], c("mean", "max"), na.rm = TRUE)
+```
+
+Curve numbers and hydrologic soil groups for any land use and soil:
+
+```{r}
+hsg <- dm_hsg_texture(sand = c(70, 35, 20), silt = c(20, 40, 35), clay = c(10, 25, 45))
+dm_cn_lookup(c("row_crops_contoured_good", "pasture_fair", "woods_fair"), hsg)
+```

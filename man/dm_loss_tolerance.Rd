@@ -24,6 +24,14 @@ limit of 11.2 t ha\eqn{^{-1}} yr\eqn{^{-1}} is the upper tolerance commonly
 used in conservation planning; supply site-specific limits where
 available (for shallow or degraded soils they are lower).
 }
+\details{
+Tolerable limits differ between soils and regions. For a map of
+site-specific limits, decide on the ratio of soil loss to the local limit
+with `T_limit = 1` (see the example).
+}
 \examples{
 dm_loss_tolerance()
+# site-specific limits: decide on soil loss / local limit
+loss <- c(6, 9, 14); local_T <- c(5, 12.5, 10)
+dm_decide(dm_gaussian(loss / local_T, sd = 0.2), dm_loss_tolerance(T_limit = 1))
 }
