@@ -5,6 +5,9 @@ M Muruganandam and Rama Pal.
 
 * First release of TerravAI (Threshold Expected-Regret and Risk Analysis with
   Value of information and Artificial Intelligence), package `terravai`.
+* `dm_nutrient_transfer()`: multi-site nutrient-loss model (shared slope,
+  site effect) calibrated with a few local plots; predictive draws share the
+  site effect, so value of information can price local calibration.
 * Second review round:
   * `dm_fill_sinks()` rewritten in C (priority-flood, Barnes et al. 2014):
     same surface as before, about 100 times faster (4 million cells in about

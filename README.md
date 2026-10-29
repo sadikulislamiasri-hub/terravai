@@ -144,6 +144,9 @@ any state in India or any country.
   the previous five days), not annual totals.
 * **Erosivity.** `dm_erosivity_india()` returns R in the metric units of the
   source equation; check that K uses matching units before multiplying.
+* **Transferring nutrient equations.** Across seven ICAR-IISWC centres,
+  nutrient loss per tonne of soil differed about 10-fold, so no single
+  equation transfers. Use `dm_nutrient_transfer()` with a few local plots.
 * **Empirical nutrient equations.** Valid within the range of the
   ICAR-IISWC plot data; segments are discontinuous at breakpoints (see
   `attr(dm_nutrient_coef(), "jumps")`).

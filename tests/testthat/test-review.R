@@ -98,3 +98,19 @@ test_that("regional erosivity equations", {
   expect_warning(dm_erosivity_india(300, equation = "bundelkhand_jhansi"), "range")
   expect_error(dm_erosivity_india(1000, equation = "nowhere"))
 })
+
+test_that("nutrient transfer model recovers parameters and narrows with local plots", {
+  set.seed(3)
+  site <- rep(letters[1:6], each = 40)
+  A <- rlnorm(240, 1.5, 0.8)
+  mu <- setNames(rnorm(6, 0, 0.6), letters[1:6])[site]
+  N <- exp(mu + 0.5 * log(A) + rnorm(240, 0, 0.4))
+  p0 <- dm_nutrient_transfer(A, N, site, new_soil_loss = c(2, 5, 10), seed = 1)
+  expect_equal(unname(attr(p0, "params")["b"]), 0.5, tolerance = 0.1)
+  expect_equal(unname(attr(p0, "params")["sigma"]), 0.4, tolerance = 0.15)
+  p5 <- dm_nutrient_transfer(A, N, site, new_soil_loss = c(2, 5, 10),
+                             local_soil_loss = c(2, 4, 6, 8, 10), local_nutrient = c(3, 4, 5, 6, 6),
+                             seed = 1)
+  expect_lt(attr(p5, "site_effect")["var"], attr(p0, "site_effect")["var"])
+  expect_error(dm_nutrient_transfer(A[1:80], N[1:80], site[1:80], 5), "3 sites")
+})
