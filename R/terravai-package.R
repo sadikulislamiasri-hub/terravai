@@ -1,4 +1,4 @@
-#' terravai: Value of Information for Spatial Decisions from AI Predictions
+#' terravai: Spatial Value of Information from AI Predictions
 #'
 #' TerravAI (Threshold Expected-Regret and Risk Analysis with Value of
 #' information and Artificial Intelligence; package `terravai`) turns the predictive distribution of any

@@ -4,7 +4,7 @@
 \name{terravai-package}
 \alias{terravai}
 \alias{terravai-package}
-\title{terravai: Value of Information for Spatial Decisions from AI Predictions}
+\title{terravai: Spatial Value of Information from AI Predictions}
 \description{
 TerravAI (Threshold Expected-Regret and Risk Analysis with Value of
 information and Artificial Intelligence; package `terravai`) turns the predictive distribution of any

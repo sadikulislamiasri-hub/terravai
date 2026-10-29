@@ -1,6 +1,6 @@
 Package: terravai
 Type: Package
-Title: Value of Information for Spatial Decisions from AI Predictions
+Title: Spatial Value of Information from AI Predictions
 Version: 0.1.0
 Authors@R:
     person("Sadikul", "Islam", email = "sadikul.islamiasri@gmail.com",
