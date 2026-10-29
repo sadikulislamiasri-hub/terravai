@@ -49,8 +49,41 @@
 dm_nutrient_transfer <- function(soil_loss, nutrient_loss, site, new_soil_loss,
                                  local_soil_loss = NULL, local_nutrient = NULL,
                                  min_soil = 0.5, n_draws = 1000, seed = NULL) {
+  dm_transfer(soil_loss, nutrient_loss, site, new_soil_loss, local_soil_loss, local_nutrient,
+              min_x = min_soil, n_draws = n_draws, seed = seed)
+}
+
+#' Transfer a log-log relation to a new site, with local calibration
+#'
+#' The general form of [dm_nutrient_transfer()]: fits
+#' \eqn{\log y_{ij} = \mu_j + b \log x_{ij} + \varepsilon_{ij}} across sites,
+#' with a random site effect, and predicts \eqn{y} at a new site after updating
+#' the site effect from any local pairs. Use it to calibrate a formula against
+#' measurements (`x` = formula prediction, for example RUSLE soil loss;
+#' `y` = measured value) or to transfer an empirical relation between sites.
+#'
+#' @param x,y,site Training predictor, response and site identifier.
+#' @param new_x Predictor at the new site's prediction locations (a number,
+#'   vector or `dm_predictive`; its mean is used).
+#' @param local_x,local_y Optional local pairs at the new site.
+#' @param min_x Smallest predictor value used in fitting.
+#' @param n_draws,seed Monte Carlo settings.
+#' @return As for [dm_nutrient_transfer()].
+#' @examples
+#' set.seed(2)
+#' site <- rep(1:5, each = 25)
+#' rusle <- rlnorm(125, 2, 1)                       # formula predictions
+#' meas <- exp(rep(rnorm(5, -1.5, 0.7), each = 25) + 0.6 * log(rusle) + rnorm(125, 0, 0.6))
+#' fit <- dm_transfer(rusle, meas, site, new_x = c(5, 20, 60),
+#'                    local_x = c(8, 30), local_y = c(1.2, 3.5))
+#' attr(fit, "params"); fit$mean
+#' @export
+dm_transfer <- function(x, y, site, new_x, local_x = NULL, local_y = NULL,
+                        min_x = 0, n_draws = 1000, seed = NULL) {
+  soil_loss <- x; nutrient_loss <- y; new_soil_loss <- new_x
+  local_soil_loss <- local_x; local_nutrient <- local_y; min_soil <- min_x
   if (!(length(soil_loss) == length(nutrient_loss) && length(site) == length(soil_loss))) {
-    stop("'soil_loss', 'nutrient_loss' and 'site' must have the same length.", call. = FALSE)
+    stop("'x', 'y' and 'site' must have the same length.", call. = FALSE)
   }
   ok <- is.finite(soil_loss) & is.finite(nutrient_loss) & soil_loss > min_soil &
     nutrient_loss > 0 & !is.na(site)
@@ -66,7 +99,7 @@ dm_nutrient_transfer <- function(soil_loss, nutrient_loss, site, new_soil_loss,
   post <- c(m, tau2)
   if (!is.null(local_nutrient)) {
     if (length(local_soil_loss) != length(local_nutrient)) {
-      stop("'local_soil_loss' and 'local_nutrient' must have the same length.", call. = FALSE)
+      stop("'local_x' and 'local_y' must have the same length.", call. = FALSE)
     }
     keep <- local_soil_loss > 0 & local_nutrient > 0
     rl <- log(local_nutrient[keep]) - b * log(local_soil_loss[keep])

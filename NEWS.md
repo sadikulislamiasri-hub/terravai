@@ -5,6 +5,8 @@ M Muruganandam and Rama Pal.
 
 * First release of TerravAI (Threshold Expected-Regret and Risk Analysis with
   Value of information and Artificial Intelligence), package `terravai`.
+* `dm_transfer()`: calibrates any formula (for example RUSLE) against
+  measurements across sites, with local calibration at a new site.
 * `dm_nutrient_transfer()`: multi-site nutrient-loss model (shared slope,
   site effect) calibrated with a few local plots; predictive draws share the
   site effect, so value of information can price local calibration.

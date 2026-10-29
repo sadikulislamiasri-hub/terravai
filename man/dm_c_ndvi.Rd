@@ -16,13 +16,13 @@ C factor.
 }
 \description{
 \eqn{C = \exp(-\alpha\, NDVI / (\beta - NDVI))}, bounded to \[0, 1\]
-(van der Knijff et al., 2000).
+(van der Knijff et al., 1999).
 }
 \examples{
 dm_c_ndvi(c(0.1, 0.4, 0.8))
 }
 \references{
 van der Knijff, J. M., Jones, R. J. A. and Montanarella, L.
-  (2000). *Soil Erosion Risk Assessment in Europe*. EUR 19044 EN, European
-  Soil Bureau, Joint Research Centre.
+  (1999). *Soil Erosion Risk Assessment in Italy*. EUR 19022 EN, Joint
+  Research Centre, European Commission.
 }
