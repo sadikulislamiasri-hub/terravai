@@ -167,7 +167,10 @@ dm_shc_rating <- function(x, parameter, table = dm_shc_table()) {
 #' numbers, rasters (e.g. gridded rainfall) or uncertain values.
 #'
 #' @param P Mean annual rainfall (mm).
-#' @param a,b Coefficients (defaults from Singh et al., 1981).
+#' @param a,b Coefficients; if `NULL`, taken from `equation`.
+#' @param equation Name of a relation in [dm_erosivity_table()]: the
+#'   all-India relation (default) or a regional one. Prefer a regional or
+#'   state relation where one exists.
 #' @param n_draws,seed Monte Carlo settings used when an input is uncertain.
 #' @return Erosivity R, in the metric units of the source equation. Indian
 #'   iso-erodent maps and equations have been published in more than one unit
@@ -182,9 +185,73 @@ dm_shc_rating <- function(x, parameter, table = dm_shc_table()) {
 #' @examples
 #' dm_erosivity_india(c(800, 1400, 2200))
 #' @export
-dm_erosivity_india <- function(P, a = 79, b = 0.363, n_draws = 500, seed = NULL) {
+dm_erosivity_india <- function(P, a = NULL, b = NULL, equation = "singh1981",
+                               n_draws = 500, seed = NULL) {
   .check_range(P, "P", 0)
-  .apply_formula(function(P) a + b * P, list(P = P), n_draws, seed)
+  if (is.null(a) || is.null(b)) {
+    tab <- dm_erosivity_table()
+    row <- tab[tab$equation == equation, ]
+    if (nrow(row) != 1) {
+      stop("Unknown equation '", equation, "'; see dm_erosivity_table().", call. = FALSE)
+    }
+    if (is.null(a)) a <- row$a
+    if (is.null(b)) b <- row$b
+    Pm <- if (.is_uncertain(P)) P$mean else if (inherits(P, "SpatRaster")) NULL else P
+    if (!is.null(Pm) && any(Pm < row$P_min | Pm > row$P_max, na.rm = TRUE)) {
+      warning("Some rainfall values lie outside the range in which equation '", equation,
+              "' was fitted (", row$P_min, "-", row$P_max, " mm).", call. = FALSE)
+    }
+  }
+  out <- .apply_formula(function(P) pmax(a + b * P, 0), list(P = P), n_draws, seed)
+  out
+}
+
+#' Regional rainfall erosivity equations for India
+#'
+#' Linear relations \eqn{R = a + b P} between mean annual rainfall
+#' \eqn{P} (mm) and erosivity \eqn{R} (MJ mm ha\eqn{^{-1}}
+#' h\eqn{^{-1}} yr\eqn{^{-1}}, as reported by the sources) for use with
+#' [dm_erosivity_india()]: the all-India relation of Singh, Chandra and Babu
+#' (1981) and the district relations for Bundelkhand of Gupta et al. (2024).
+#' Add rows for other states from published studies as needed.
+#'
+#' The Bundelkhand relations explain only 32-56\% of the year-to-year
+#' variance (column `r2`) and have large negative intercepts, so they are
+#' meant for long-term mean rainfall near the regional range (about
+#' 700-1,400 mm), not for single dry years; negative estimates are set to 0.
+#' The rainfall range of the all-India relation is given here as a broad
+#' plausibility range, not as the range of the original data.
+#'
+#' @return A data frame with columns `equation`, `region`, `a`, `b`, `r2`,
+#'   `P_min`, `P_max` and `source`.
+#' @references Gupta, A., Sawant, C. P., Kumar, M., Singh, R. K. and Rao,
+#'   K. V. R. (2024). Assessment of rainfall erosivity for Bundelkhand region
+#'   of central India using long-term rainfall data. *MAUSAM*, 75(2),
+#'   415-432. \doi{10.54302/mausam.v75i2.3893}
+#'
+#'   Singh, G., Chandra, S. and Babu, R. (1981). *Soil Loss Prediction
+#'   Research in India*. Bulletin T-12/D-9, Central Soil and Water
+#'   Conservation Research and Training Institute, Dehradun.
+#' @examples
+#' dm_erosivity_table()[1:4, ]
+#' dm_erosivity_india(c(900, 1100), equation = "bundelkhand_jhansi")
+#' @export
+dm_erosivity_table <- function() {
+  bk <- data.frame(
+    district = c("Jhansi", "Hamirpur", "Mahoba", "Banda", "Chitrakoot", "Jalaun",
+                 "Chhatarpur", "Datia", "Lalitpur", "Sagar", "Damoh", "Panna", "Tikamgarh"),
+    a = c(-1670.38, -1344.69, -2438.64, -1321.74, -816.55, -2055.79, -2649.70, -1302.63,
+          -2303.27, -3004.92, -2661.26, -4025.39, -1675.82),
+    b = c(6.19, 5.53, 7.30, 5.64, 4.74, 6.63, 7.09, 5.83, 7.37, 7.17, 6.71, 8.16, 6.41),
+    r2 = c(0.437, 0.423, 0.520, 0.374, 0.323, 0.562, 0.453, 0.457, 0.479, 0.473, 0.431,
+           0.557, 0.434))
+  rbind(
+    data.frame(equation = "singh1981", region = "India", a = 79, b = 0.363, r2 = NA_real_,
+               P_min = 200, P_max = 4000, source = "Singh, Chandra and Babu (1981)"),
+    data.frame(equation = paste0("bundelkhand_", tolower(bk$district)),
+               region = paste0(bk$district, " (Bundelkhand)"), a = bk$a, b = bk$b, r2 = bk$r2,
+               P_min = 700, P_max = 1400, source = "Gupta et al. (2024), MAUSAM 75(2)")
+  )
 }
 
 #' Slope classes used in Indian soil and land-use surveys

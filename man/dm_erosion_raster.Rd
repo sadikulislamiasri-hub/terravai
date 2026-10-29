@@ -18,7 +18,8 @@ dm_erosion_raster(
   texture_unit = c("percent", "g_kg"),
   soc_unit = c("percent", "g_kg", "dg_kg"),
   max_slope_length = 300,
-  fill_sinks = TRUE
+  fill_sinks = TRUE,
+  steepness = c("standard", "nearing")
 )
 }
 \arguments{
@@ -47,10 +48,14 @@ factor (m), to avoid treating channels as hillslopes.}
 
 \item{fill_sinks}{Fill pits and flats before flow routing
 ([dm_fill_sinks()]); strongly recommended for real elevation models.}
+
+\item{steepness}{Slope-steepness relation for the LS factor; see
+[dm_ls_factor()]. `"nearing"` is recommended for steep terrain.}
 }
 \value{
 A `SpatRaster` with layers `slope` (degrees), `flow_acc` (cells),
-  `LS`, `C`, `K`, `P` and `A` (soil loss, t ha\eqn{^{-1}} yr\eqn{^{-1}}),
+  `LS`, `C`, `K`, `P`, `A` (soil loss, t ha\eqn{^{-1}} yr\eqn{^{-1}}),
+  and the gully-risk indices `SPI` and `TWI` (see [dm_gully_risk()]),
   with the D8 flow directions attached as attribute `to` (for
   [dm_outlet_load()]).
 }

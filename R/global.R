@@ -180,10 +180,13 @@ dm_p_factor <- function(practice = c("none", "contouring", "strip_cropping"), sl
 #'   (as in SoilGrids).
 #' @param max_slope_length Cap on the specific catchment area used in the LS
 #'   factor (m), to avoid treating channels as hillslopes.
+#' @param steepness Slope-steepness relation for the LS factor; see
+#'   [dm_ls_factor()]. `"nearing"` is recommended for steep terrain.
 #' @param fill_sinks Fill pits and flats before flow routing
 #'   ([dm_fill_sinks()]); strongly recommended for real elevation models.
 #' @return A `SpatRaster` with layers `slope` (degrees), `flow_acc` (cells),
-#'   `LS`, `C`, `K`, `P` and `A` (soil loss, t ha\eqn{^{-1}} yr\eqn{^{-1}}),
+#'   `LS`, `C`, `K`, `P`, `A` (soil loss, t ha\eqn{^{-1}} yr\eqn{^{-1}}),
+#'   and the gully-risk indices `SPI` and `TWI` (see [dm_gully_risk()]),
 #'   with the D8 flow directions attached as attribute `to` (for
 #'   [dm_outlet_load()]).
 #' @examples
@@ -200,10 +203,12 @@ dm_erosion_raster <- function(dem, R, ndvi = NULL, C = NULL, sand = NULL, silt =
                               clay = NULL, soc = NULL, K = NULL, P = 1,
                               texture_unit = c("percent", "g_kg"),
                               soc_unit = c("percent", "g_kg", "dg_kg"),
-                              max_slope_length = 300, fill_sinks = TRUE) {
+                              max_slope_length = 300, fill_sinks = TRUE,
+                              steepness = c("standard", "nearing")) {
   if (!requireNamespace("terra", quietly = TRUE)) stop("Package 'terra' is needed.", call. = FALSE)
   if (!inherits(dem, "SpatRaster")) stop("'dem' must be a SpatRaster.", call. = FALSE)
   texture_unit <- match.arg(texture_unit); soc_unit <- match.arg(soc_unit)
+  steepness <- match.arg(steepness)
   dem <- dem[[1]]
   align <- function(r, method = "bilinear") {
     if (is.null(r) || !inherits(r, "SpatRaster")) return(r)
@@ -229,9 +234,13 @@ dm_erosion_raster <- function(dem, R, ndvi = NULL, C = NULL, sand = NULL, silt =
   cell_m <- if (terra::is.lonlat(dem)) sqrt(terra::values(terra::cellSize(dem, unit = "m"),
                                                           mat = FALSE)) else
     rep(mean(terra::res(dem)), terra::ncell(dem))
-  .warn_steep(slope)
-  As <- pmin(acc * cell_m, max_slope_length)
-  LS <- (As / 22.13)^0.4 * (sin(pmax(slope, 0) * pi / 180) / 0.0896)^1.3
+  if (steepness == "standard") .warn_steep(slope)
+  As_full <- acc * cell_m
+  As <- pmin(As_full, max_slope_length)
+  S <- if (steepness == "nearing") .s_nearing(pmax(slope, 0)) else
+    (sin(pmax(slope, 0) * pi / 180) / 0.0896)^1.3
+  LS <- (As / 22.13)^0.4 * S
+  gi <- dm_gully_risk(pmax(slope, 0), ifelse(is.na(As_full), 0, As_full))
   Cv <- if (!is.null(C)) val(C, "C") else if (!is.null(ndvi)) {
     nd <- val(ndvi, "ndvi"); dm_c_ndvi(pmin(pmax(nd, -1), 1))
   } else stop("Supply 'ndvi' or 'C'.", call. = FALSE)
@@ -253,7 +262,8 @@ dm_erosion_raster <- function(dem, R, ndvi = NULL, C = NULL, sand = NULL, silt =
   A <- Rv * Kv * LS * Cv * Pv
   mk <- function(v, nm) { r <- terra::rast(dem); terra::values(r) <- v; names(r) <- nm; r }
   out <- c(mk(slope, "slope"), mk(acc, "flow_acc"), mk(LS, "LS"), mk(Cv, "C"), mk(Kv, "K"),
-           mk(Pv, "P"), mk(A, "A"))
+           mk(Pv, "P"), mk(A, "A"), mk(ifelse(is.na(z), NA, gi$spi), "SPI"),
+           mk(ifelse(is.na(z), NA, gi$twi), "TWI"))
   attr(out, "to") <- to
   out
 }

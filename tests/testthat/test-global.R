@@ -43,7 +43,7 @@ test_that("raster erosion pipeline works on projected and geographic grids", {
                              silt = silt, clay = clay, soc = soc, texture_unit = "g_kg",
                              soc_unit = "dg_kg")
     expect_s4_class(out, "SpatRaster")
-    expect_equal(names(out), c("slope", "flow_acc", "LS", "C", "K", "P", "A"))
+    expect_equal(names(out), c("slope", "flow_acc", "LS", "C", "K", "P", "A", "SPI", "TWI"))
     v <- terra::values(out)
     expect_true(all(v[, "A"] >= 0, na.rm = TRUE))
     expect_equal(max(v[, "flow_acc"], na.rm = TRUE), 625)

@@ -9,7 +9,8 @@ dm_ls_factor(
   flow_acc = NULL,
   cell_size = NULL,
   length = NULL,
-  method = c("moore", "wischmeier")
+  method = c("moore", "wischmeier"),
+  steepness = c("standard", "nearing")
 )
 }
 \arguments{
@@ -23,6 +24,12 @@ dm_ls_factor(
 \item{length}{Slope length (m) (method `"wischmeier"`).}
 
 \item{method}{`"moore"` or `"wischmeier"`.}
+
+\item{steepness}{Slope-steepness relation: `"standard"` (McCool et al.
+1987 form in the chosen method) or `"nearing"`, the single continuous
+function of Nearing (1997), \eqn{S = -1.5 + 17 / (1 + e^{2.3 - 6.1 \sin
+\theta})}, fitted to data up to about 55\% slope and recommended for steep
+terrain such as the Himalaya and the Western Ghats.}
 }
 \value{
 LS factor (dimensionless). A warning is given when more than 5\%
@@ -51,6 +58,10 @@ dm_ls_factor(slope = 8, flow_acc = 20, cell_size = 30)
 Moore, I. D. and Burch, G. J. (1986). Physical basis of the
   length-slope factor in the Universal Soil Loss Equation. *Soil Science
   Society of America Journal*, 50, 1294-1298.
+
+  Nearing, M. A. (1997). A single, continuous function for slope
+  steepness influence on soil loss. *Soil Science Society of America
+  Journal*, 61, 917-919.
 
   Wischmeier, W. H. and Smith, D. D. (1978). *Predicting Rainfall Erosion
   Losses: A Guide to Conservation Planning*. Agriculture Handbook 537,

@@ -215,6 +215,12 @@ dm_fit_cov <- function(coords, y, X = NULL, model = "exponential", kappa = 0.5,
 #' @param X,newX Optional covariates at observation and prediction locations.
 #' @param full_cov Return the full predictive covariance matrix (needed for
 #'   [dm_voi()]); if `FALSE`, only standard deviations.
+#' @param nmax If set, local (moving-neighbourhood) kriging from the `nmax`
+#'   nearest observations to each prediction location. Memory and time then
+#'   grow linearly with the number of prediction locations, so maps of
+#'   millions of cells are possible; only standard deviations are returned.
+#'   For value of information on such maps, simulate draws and use the
+#'   ensemble method.
 #' @return A `dm_predictive` object of type `"gaussian"`.
 #' @examples
 #' sim <- dm_simulate(n_side = 12, n_obs = 30, seed = 5)
@@ -222,12 +228,30 @@ dm_fit_cov <- function(coords, y, X = NULL, model = "exponential", kappa = 0.5,
 #'                 model = sim$model)
 #' fit
 #' @export
-dm_krige <- function(coords, y, newcoords, model, X = NULL, newX = NULL, full_cov = TRUE) {
+dm_krige <- function(coords, y, newcoords, model, X = NULL, newX = NULL, full_cov = TRUE,
+                     nmax = NULL) {
   if (!inherits(model, "dm_covmodel")) stop("'model' must be a dm_covmodel.", call. = FALSE)
   y <- as.numeric(y); n <- length(y)
   coords <- as.matrix(coords)[, 1:2, drop = FALSE]; newcoords <- as.matrix(newcoords)[, 1:2, drop = FALSE]
   m <- nrow(newcoords)
   if (xor(is.null(X), is.null(newX))) stop("Supply both 'X' and 'newX', or neither.", call. = FALSE)
+  if (!is.null(nmax) && nmax < n) {
+    if (full_cov) {
+      message("Local kriging (nmax) returns standard deviations only; full_cov set to FALSE.")
+    }
+    Xa <- if (is.null(X)) NULL else as.matrix(X)
+    Xn <- if (is.null(newX)) NULL else as.matrix(newX)
+    mu <- sdv <- numeric(m)
+    for (i in seq_len(m)) {
+      d2 <- (coords[, 1] - newcoords[i, 1])^2 + (coords[, 2] - newcoords[i, 2])^2
+      id <- order(d2)[seq_len(nmax)]
+      f <- dm_krige(coords[id, , drop = FALSE], y[id], newcoords[i, , drop = FALSE], model,
+                    X = if (is.null(Xa)) NULL else Xa[id, , drop = FALSE],
+                    newX = if (is.null(Xn)) NULL else Xn[i, , drop = FALSE], full_cov = FALSE)
+      mu[i] <- f$mean; sdv[i] <- f$sd
+    }
+    return(dm_gaussian(mu, sd = sdv, coords = newcoords))
+  }
   Xd <- .design_X(X, n); X0 <- .design_X(newX, m)
   K <- dm_cov(coords, model = model, nugget = TRUE)
   L <- .safe_chol(K)

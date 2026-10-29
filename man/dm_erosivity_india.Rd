@@ -4,12 +4,23 @@
 \alias{dm_erosivity_india}
 \title{Rainfall erosivity for India from annual rainfall}
 \usage{
-dm_erosivity_india(P, a = 79, b = 0.363, n_draws = 500, seed = NULL)
+dm_erosivity_india(
+  P,
+  a = NULL,
+  b = NULL,
+  equation = "singh1981",
+  n_draws = 500,
+  seed = NULL
+)
 }
 \arguments{
 \item{P}{Mean annual rainfall (mm).}
 
-\item{a, b}{Coefficients (defaults from Singh et al., 1981).}
+\item{a, b}{Coefficients; if `NULL`, taken from `equation`.}
+
+\item{equation}{Name of a relation in [dm_erosivity_table()]: the
+all-India relation (default) or a regional one. Prefer a regional or
+state relation where one exists.}
 
 \item{n_draws, seed}{Monte Carlo settings used when an input is uncertain.}
 }

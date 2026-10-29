@@ -4,15 +4,13 @@
 \alias{dm_fill_sinks}
 \title{Fill sinks in an elevation model}
 \usage{
-dm_fill_sinks(elev, epsilon = 1e-04, max_iter = 10000)
+dm_fill_sinks(elev, epsilon = 1e-04)
 }
 \arguments{
 \item{elev}{Numeric matrix or single-layer `SpatRaster` of elevations.}
 
-\item{epsilon}{Minimum elevation drop imposed between neighbouring cells
-in filled areas (in elevation units).}
-
-\item{max_iter}{Maximum number of sweeps.}
+\item{epsilon}{Minimum elevation rise imposed from the outlet side across
+filled areas (in elevation units). Use 0 for a pure fill (flats remain).}
 }
 \value{
 The filled elevations, in the form of the input.
@@ -22,9 +20,11 @@ Real elevation models (SRTM, Copernicus, CartoDEM) contain many small
 artificial pits and flat areas. Without filling, single-direction flow
 routing stops at every pit, so drainage areas, LS factors and outlet loads
 are badly underestimated. This function fills depressions so that every
-cell drains to the edge of the grid (or to a missing-value area), using the
-algorithm of Planchon and Darboux (2002) with a small gradient
-`epsilon` imposed across filled areas so that flats also drain.
+cell drains to the edge of the grid (or to a missing-value area), with a
+small gradient `epsilon` imposed across filled areas so that flats also
+drain. It uses the priority-flood algorithm (Barnes et al., 2014) in
+compiled code, which gives the same surface as Planchon and Darboux (2002)
+in \eqn{O(n \log n)} time: about a million cells per second.
 }
 \examples{
 z <- outer(1:20, 1:20, "+"); z[10, 10] <- 0       # an artificial pit
@@ -32,7 +32,12 @@ sum(is.na(dm_flow_from_dem(z)))                    # 2 sinks
 sum(is.na(dm_flow_from_dem(dm_fill_sinks(z))))     # 1 outlet
 }
 \references{
-Planchon, O. and Darboux, F. (2002). A fast, simple and
-  versatile algorithm to fill the depressions of digital elevation models.
+Barnes, R., Lehman, C. and Mulla, D. (2014). Priority-flood:
+  an optimal depression-filling and watershed-labeling algorithm for
+  digital elevation models. *Computers & Geosciences*, 62, 117-127.
+  \doi{10.1016/j.cageo.2013.04.024}
+
+  Planchon, O. and Darboux, F. (2002). A fast, simple and versatile
+  algorithm to fill the depressions of digital elevation models.
   *Catena*, 46, 159-176. \doi{10.1016/S0341-8162(01)00164-3}
 }

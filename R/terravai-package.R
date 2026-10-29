@@ -69,4 +69,5 @@
 #'   lines abline barplot plot.new plot.window title mtext segments matplot
 #' @importFrom grDevices hcl.colors adjustcolor
 #' @importFrom utils head
+#' @useDynLib terravai, .registration = TRUE
 NULL

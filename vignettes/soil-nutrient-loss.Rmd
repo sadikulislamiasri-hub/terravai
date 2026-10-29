@@ -144,7 +144,14 @@ plot(v, main = "Value of a new runoff plot")
 
 ## 8. Is the model good enough? Formula versus measurements
 
-Compare RUSLE with the "true" soil loss by accuracy and by decision regret:
+First the hydrological statistics (NSE, KGE, percent bias) and whether the
+stated uncertainty is honest (interval coverage, CRPS):
+
+```{r}
+dm_validate(g$soil_loss, soil)
+```
+
+Then compare RUSLE with the "true" soil loss by decision regret:
 
 ```{r}
 ev <- dm_evaluate(g$soil_loss,
@@ -170,6 +177,16 @@ terra::values(dem) <- as.numeric(outer(1:40, 1:40, function(i, j) 700 + 5 * i + 
 out <- dm_erosion_raster(dem, R = 900, ndvi = terra::init(dem, 0.35), K = 0.03,
                          P = dm_p_factor("contouring", 6))
 terra::global(out[["A"]], c("mean", "max"), na.rm = TRUE)
+```
+
+For steep terrain use `steepness = "nearing"`. The output also carries the
+stream power index (`SPI`) and wetness index (`TWI`) for screening gully and
+ravine risk, which RUSLE itself does not predict (see `dm_gully_risk()`).
+
+Erosivity from a regional relation where one exists:
+
+```{r}
+dm_erosivity_india(1000, equation = "bundelkhand_jhansi")
 ```
 
 Curve numbers and hydrologic soil groups for any land use and soil:

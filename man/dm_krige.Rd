@@ -4,7 +4,16 @@
 \alias{dm_krige}
 \title{Kriging with full predictive covariance}
 \usage{
-dm_krige(coords, y, newcoords, model, X = NULL, newX = NULL, full_cov = TRUE)
+dm_krige(
+  coords,
+  y,
+  newcoords,
+  model,
+  X = NULL,
+  newX = NULL,
+  full_cov = TRUE,
+  nmax = NULL
+)
 }
 \arguments{
 \item{coords}{Observation coordinates.}
@@ -19,6 +28,13 @@ dm_krige(coords, y, newcoords, model, X = NULL, newX = NULL, full_cov = TRUE)
 
 \item{full_cov}{Return the full predictive covariance matrix (needed for
 [dm_voi()]); if `FALSE`, only standard deviations.}
+
+\item{nmax}{If set, local (moving-neighbourhood) kriging from the `nmax`
+nearest observations to each prediction location. Memory and time then
+grow linearly with the number of prediction locations, so maps of
+millions of cells are possible; only standard deviations are returned.
+For value of information on such maps, simulate draws and use the
+ensemble method.}
 }
 \value{
 A `dm_predictive` object of type `"gaussian"`.

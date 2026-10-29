@@ -41,3 +41,60 @@ test_that("daily curve number runoff uses antecedent moisture", {
   expect_true(out$total <= sum(rain))
   expect_true(all(out$daily >= 0))
 })
+
+test_that("compiled sink fill matches Planchon-Darboux and handles NA", {
+  set.seed(2)
+  z <- outer(1:30, 1:30, "+") + matrix(rnorm(900, 0, 2), 30)
+  z[10:12, 10:12] <- NA
+  f <- dm_fill_sinks(z)
+  expect_true(all(is.na(f) == is.na(z)))
+  expect_true(all(f >= z, na.rm = TRUE))
+  # every non-NA interior cell now has a downslope neighbour
+  to <- dm_flow_from_dem(f)
+  border <- row(z) %in% c(1, 30) | col(z) %in% c(1, 30)
+  nearna <- as.vector(Reduce(`|`, lapply(list(c(-1,0),c(1,0),c(0,-1),c(0,1),c(-1,-1),c(1,1),c(-1,1),c(1,-1)),
+    function(d) { P <- matrix(FALSE, 32, 32); P[2:31, 2:31] <- is.na(z); P[(2:31) + d[1], (2:31) + d[2]] })))
+  expect_true(all(!is.na(to[!border & !nearna & !is.na(as.vector(z))])))
+  expect_error(dm_fill_sinks(z, epsilon = -1))
+})
+
+test_that("Nearing steepness factor is continuous and bounded on steep slopes", {
+  s <- suppressWarnings(dm_ls_factor(c(1, 30, 60, 80), flow_acc = 1, cell_size = 22.13,
+                                     steepness = "nearing"))
+  expect_true(all(diff(s) > 0))
+  expect_lt(max(s), 15.5)
+  expect_silent(dm_ls_factor(rep(40, 5), flow_acc = 1, cell_size = 22.13, steepness = "nearing"))
+})
+
+test_that("gully risk indices", {
+  g <- dm_gully_risk(c(2, 15), c(50, 2000), threshold = 5)
+  expect_equal(g$at_risk, c(FALSE, TRUE))
+  expect_equal(g$spi[2], 2000 * tan(15 * pi / 180))
+})
+
+test_that("local kriging agrees with global kriging", {
+  sim <- dm_simulate(n_side = 15, n_obs = 120, seed = 5)
+  xy <- sim$grid[, c("x", "y")]; o <- sim$obs
+  f1 <- dm_krige(o[, c("x", "y")], o$z, xy, sim$model, full_cov = FALSE)
+  f2 <- dm_krige(o[, c("x", "y")], o$z, xy, sim$model, full_cov = FALSE, nmax = 60)
+  expect_gt(cor(f1$mean, f2$mean), 0.999)
+  expect_lt(max(abs(f1$sd - f2$sd)), 0.05)
+})
+
+test_that("validation statistics are correct", {
+  v <- dm_validate(c(1, 2, 3, 4), c(1, 2, 3, 4))
+  expect_equal(unname(v$stats[c("nse", "kge", "rmse", "pbias")]), c(1, 1, 0, 0))
+  p <- dm_gaussian(mean = rep(0, 2000), sd = rep(1, 2000))
+  set.seed(1); v2 <- dm_validate(rnorm(2000), p)
+  expect_equal(v2$coverage$observed, c(0.5, 0.9), tolerance = 0.03)
+  expect_equal(unname(v2$stats["crps"]), 1 / sqrt(pi), tolerance = 0.08)
+})
+
+test_that("regional erosivity equations", {
+  tab <- dm_erosivity_table()
+  expect_equal(nrow(tab), 14)
+  expect_equal(dm_erosivity_india(1000), 79 + 363)
+  expect_equal(dm_erosivity_india(1000, equation = "bundelkhand_jhansi"), -1670.38 + 6190)
+  expect_warning(dm_erosivity_india(300, equation = "bundelkhand_jhansi"), "range")
+  expect_error(dm_erosivity_india(1000, equation = "nowhere"))
+})

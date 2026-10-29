@@ -121,7 +121,7 @@ writeRaster(out, "soil_loss.tif")
 | Conservation practice factor | `dm_p_factor()` (contouring, strip cropping) |
 | Region-specific limits | `dm_loss_tolerance(T_limit = )`, or a site-specific tolerance map (see `?dm_loss_tolerance`) |
 | Real elevation models | Pits filled before routing (`dm_fill_sinks()`, Planchon-Darboux); D8 uses true cell sizes, also on longitude/latitude grids |
-| Large rasters | D8 routing and flow accumulation handle about a million cells in about a second; sink filling takes about 6 s for 250,000 cells |
+| Large rasters | D8 routing and flow accumulation handle about a million cells in about a second; sink filling takes about 1 s for 4 million cells |
 
 Regional coefficients that vary between places (rainfall erosivity relations,
 enrichment ratios, local C, P and curve-number tables, tolerance limits) are
@@ -131,11 +131,14 @@ any state in India or any country.
 ## Scope and limits
 
 * **Erosion processes.** (R)USLE and MUSLE estimate sheet and rill erosion.
-  They do not cover gully, ravine, landslide, streambank or tillage erosion,
-  which dominate in parts of the Chambal ravines, the Himalaya and the
+  They do not predict gully, ravine, landslide, streambank or tillage
+  erosion. `dm_gully_risk()` and the `SPI`/`TWI` layers screen where gullies
+  and ravines are likely (Chambal ravines, Shivaliks), but do not give
+  tonnes of soil.
+* **Steep slopes.** The standard slope factors were fitted on plots up to
+  about 50% slope; a warning is given where more than 5% of slopes are
+  steeper. Use `steepness = "nearing"` (Nearing 1997) in the Himalaya and
   Western Ghats.
-* **Steep slopes.** The slope factors were fitted on plots up to about 50%
-  slope; a warning is given where more than 5% of slopes are steeper.
 * **Runoff.** The curve number method is an event method. Use
   `dm_runoff_cn_daily()` for daily rainfall series (antecedent moisture from
   the previous five days), not annual totals.
@@ -144,13 +147,13 @@ any state in India or any country.
 * **Empirical nutrient equations.** Valid within the range of the
   ICAR-IISWC plot data; segments are discontinuous at breakpoints (see
   `attr(dm_nutrient_coef(), "jumps")`).
-* **Dense methods.** Kriging, the closed-form value of information and the
-  Gaussian copula use dense covariance matrices: about 3,000-5,000 locations
-  on a laptop. For larger maps, use Monte Carlo draws and the ensemble value
-  of information (at least 1,000 draws; a warning is given below that).
-* **Validation.** Formula outputs are screening estimates. Calibrate C, P,
-  K and curve numbers against local runoff-plot data before using absolute
-  values for planning.
+* **Dense methods.** Full-covariance kriging, the closed-form value of
+  information and the Gaussian copula handle about 3,000-5,000 locations on
+  a laptop. For larger maps use `dm_krige(nmax = 40)` (local kriging, any
+  size) and the ensemble value of information with at least 1,000 draws.
+* **Validation.** Formula outputs are screening estimates. Check them with
+  `dm_validate()` against local runoff-plot data, and calibrate C, P, K and
+  curve numbers, before using absolute values for planning.
 
 ## Quick start (general decision engine)
 

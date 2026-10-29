@@ -5,6 +5,20 @@ M Muruganandam and Rama Pal.
 
 * First release of TerravAI (Threshold Expected-Regret and Risk Analysis with
   Value of information and Artificial Intelligence), package `terravai`.
+* Second review round:
+  * `dm_fill_sinks()` rewritten in C (priority-flood, Barnes et al. 2014):
+    same surface as before, about 100 times faster (4 million cells in about
+    1 s).
+  * `steepness = "nearing"` in `dm_ls_factor()` and `dm_erosion_raster()`:
+    Nearing (1997) slope factor for steep terrain.
+  * `dm_gully_risk()` and `SPI`/`TWI` layers in `dm_erosion_raster()` to
+    screen gully and ravine risk.
+  * `dm_krige(nmax = )`: local kriging for maps of any size.
+  * `dm_validate()`: NSE, KGE, PBIAS, RMSE, R2, CRPS and interval coverage
+    against runoff-plot measurements.
+  * `dm_erosivity_table()` and `dm_erosivity_india(equation = )`: regional
+    erosivity relations (13 Bundelkhand districts, Gupta et al. 2024), with a
+    warning outside the fitted rainfall range.
 * Correctness review (before first release):
   * `dm_fill_sinks()`: Planchon-Darboux pit filling; `dm_erosion_raster()`
     now fills sinks by default (`fill_sinks = TRUE`). On a noisy test DEM this

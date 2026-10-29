@@ -128,7 +128,7 @@ dm_flow_accumulation <- function(to, weights = 1, delivery = 1) {
   if (length(sv) && mean(sv > limit) > 0.05) {
     warning(sprintf("%.0f%% of slopes exceed %.1f degrees (50%%). The (R)USLE slope factors were ",
                     100 * mean(sv > limit), limit),
-            "derived from plots on gentler slopes; estimates on steep terrain are extrapolations.",
+            "derived from plots on gentler slopes; consider steepness = \"nearing\".",
             call. = FALSE)
   }
   invisible(NULL)
@@ -154,12 +154,21 @@ dm_flow_accumulation <- function(to, weights = 1, delivery = 1) {
 #' @param cell_size Cell size (m) (method `"moore"`).
 #' @param length Slope length (m) (method `"wischmeier"`).
 #' @param method `"moore"` or `"wischmeier"`.
+#' @param steepness Slope-steepness relation: `"standard"` (McCool et al.
+#'   1987 form in the chosen method) or `"nearing"`, the single continuous
+#'   function of Nearing (1997), \eqn{S = -1.5 + 17 / (1 + e^{2.3 - 6.1 \sin
+#'   \theta})}, fitted to data up to about 55\% slope and recommended for steep
+#'   terrain such as the Himalaya and the Western Ghats.
 #' @return LS factor (dimensionless). A warning is given when more than 5\%
 #'   of slopes exceed 50\% (26.6 degrees), beyond the plot data on which the
 #'   (R)USLE slope relations were based.
 #' @references Moore, I. D. and Burch, G. J. (1986). Physical basis of the
 #'   length-slope factor in the Universal Soil Loss Equation. *Soil Science
 #'   Society of America Journal*, 50, 1294-1298.
+#'
+#'   Nearing, M. A. (1997). A single, continuous function for slope
+#'   steepness influence on soil loss. *Soil Science Society of America
+#'   Journal*, 61, 917-919.
 #'
 #'   Wischmeier, W. H. and Smith, D. D. (1978). *Predicting Rainfall Erosion
 #'   Losses: A Guide to Conservation Planning*. Agriculture Handbook 537,
@@ -169,19 +178,22 @@ dm_flow_accumulation <- function(to, weights = 1, delivery = 1) {
 #' dm_ls_factor(slope = 8, flow_acc = 20, cell_size = 30)
 #' @export
 dm_ls_factor <- function(slope, flow_acc = NULL, cell_size = NULL, length = NULL,
-                         method = c("moore", "wischmeier")) {
-  method <- match.arg(method)
+                         method = c("moore", "wischmeier"),
+                         steepness = c("standard", "nearing")) {
+  method <- match.arg(method); steepness <- match.arg(steepness)
   .check_range(slope, "slope", 0, 90)
   sv <- if (inherits(slope, "SpatRaster")) terra::values(slope[[1]], mat = FALSE) else
     if (.is_uncertain(slope)) slope$mean else slope
-  .warn_steep(sv)
+  if (steepness == "standard") .warn_steep(sv)
   if (method == "moore") {
     if (is.null(flow_acc) || is.null(cell_size)) {
       stop("method = 'moore' needs 'flow_acc' and 'cell_size'.", call. = FALSE)
     }
     f_moore <- function(slope, flow_acc) {
       As <- flow_acc * cell_size
-      (As / 22.13)^0.4 * (sin(slope * pi / 180) / 0.0896)^1.3
+      S <- if (steepness == "nearing") .s_nearing(slope) else
+        (sin(slope * pi / 180) / 0.0896)^1.3
+      (As / 22.13)^0.4 * S
     }
     return(.apply_formula(f_moore, list(slope = slope, flow_acc = flow_acc)))
   }
@@ -190,10 +202,15 @@ dm_ls_factor <- function(slope, flow_acc = NULL, cell_size = NULL, length = NULL
     th <- slope * pi / 180
     pct <- 100 * tan(th)
     m <- ifelse(pct >= 4.75, 0.5, ifelse(pct >= 3.25, 0.4, ifelse(pct >= 1, 0.3, 0.2)))
-    (length / 22.13)^m * (65.41 * sin(th)^2 + 4.56 * sin(th) + 0.065)
+    S <- if (steepness == "nearing") .s_nearing(slope) else
+      65.41 * sin(th)^2 + 4.56 * sin(th) + 0.065
+    (length / 22.13)^m * S
   }
   .apply_formula(f_ws, list(slope = slope, length = length))
 }
+
+# Nearing (1997) continuous slope-steepness factor, valid on steep slopes
+.s_nearing <- function(slope_deg) -1.5 + 17 / (1 + exp(2.3 - 6.1 * sin(slope_deg * pi / 180)))
 
 #' Cover-management (C) factor from NDVI
 #'
@@ -575,4 +592,50 @@ dm_runoff_cn_daily <- function(P, CN, growing = TRUE, lambda = 0.2) {
   tot <- rowSums(Q)
   list(daily = Q, total = tot, amc = factor(A, 1:3, c("I", "II", "III")),
        coefficient = tot / pmax(rowSums(P), .Machine$double.eps))
+}
+
+
+#' Terrain indices for gully and ravine erosion risk
+#'
+#' (R)USLE does not predict gully or ravine erosion. Where concentrated flow
+#' is strong enough, gullies form; this is screened with the stream power
+#' index \eqn{SPI = A_s \tan\beta}, the topographic wetness index
+#' \eqn{TWI = \ln(A_s / \tan\beta)} (Moore et al., 1991) and the topographic
+#' threshold \eqn{\tan\beta \, A^b > k} for gully initiation (Patton and
+#' Schumm, 1975; Vandaele et al., 1996).
+#'
+#' @param slope Slope (degrees).
+#' @param area Specific contributing area (m2 per m of contour width), for
+#'   example flow accumulation times cell size.
+#' @param threshold Gully-initiation threshold \eqn{k}. Thresholds are
+#'   site-specific: calibrate it by mapping gully heads on imagery and
+#'   taking a low quantile of \eqn{\tan\beta \, A^b} at those heads. If
+#'   `NULL`, no cells are flagged.
+#' @param b Exponent of contributing area in the threshold (commonly 0.2 to
+#'   0.5).
+#' @return A data frame with `spi`, `twi`, `topo` (\eqn{\tan\beta\,A^b}) and,
+#'   when `threshold` is given, logical `at_risk`.
+#' @references Moore, I. D., Grayson, R. B. and Ladson, A. R. (1991). Digital
+#'   terrain modelling: a review of hydrological, geomorphological, and
+#'   biological applications. *Hydrological Processes*, 5, 3-30.
+#'
+#'   Patton, P. C. and Schumm, S. A. (1975). Gully erosion, northwestern
+#'   Colorado: a threshold phenomenon. *Geology*, 3, 88-90.
+#'
+#'   Vandaele, K., Poesen, J., Govers, G. and van Wesemael, B. (1996).
+#'   Geomorphic threshold conditions for ephemeral gully incision.
+#'   *Geomorphology*, 16, 161-173.
+#' @examples
+#' dm_gully_risk(slope = c(2, 8, 15), area = c(50, 400, 2000), threshold = 5)
+#' @export
+dm_gully_risk <- function(slope, area, threshold = NULL, b = 0.4) {
+  .check_range(slope, "slope", 0, 90); .check_range(area, "area", 0)
+  n <- max(length(slope), length(area))
+  if (!all(c(length(slope), length(area)) %in% c(1L, n))) {
+    stop("'slope' and 'area' must have length 1 or the same length.", call. = FALSE)
+  }
+  tb <- pmax(tan(slope * pi / 180), 1e-6)
+  out <- data.frame(spi = area * tb, twi = log(pmax(area, 1e-6) / tb), topo = tb * area^b)
+  if (!is.null(threshold)) out$at_risk <- out$topo > threshold
+  out
 }
