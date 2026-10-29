@@ -94,6 +94,10 @@ a correlation of 0.99 across candidate sites.
 citation("terravai")
 ```
 
+## Acknowledgements
+
+The author gratefully acknowledges the Indian Council of Agricultural Research (ICAR), New Delhi, for providing the necessary research support. This work was carried out as part of the institute-funded project “Development of AI-driven solutions for quantifying runoff induced soil loss and nutrient loss” (NRMAIISWCSIL202400300220) at ICAR–Indian Institute of Soil and Water Conservation, Dehradun.
+
 ## License
 
 MIT © Sadikul Islam

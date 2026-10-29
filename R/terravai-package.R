@@ -21,6 +21,14 @@
 #' 6. Move between scales with [dm_block_matrix()], [dm_flow_matrix()],
 #'    [dm_flow_from_dem()] and [dm_aggregate()].
 #'
+#' @section Acknowledgements:
+#' The author gratefully acknowledges the Indian Council of Agricultural
+#' Research (ICAR), New Delhi, for providing the necessary research support.
+#' This work was carried out as part of the institute-funded project
+#' "Development of AI-driven solutions for quantifying runoff induced soil loss
+#' and nutrient loss" (NRMAIISWCSIL202400300220) at ICAR-Indian Institute of
+#' Soil and Water Conservation, Dehradun.
+#'
 #' @references
 #' Raiffa, H. and Schlaifer, R. (1961). *Applied Statistical Decision Theory*.
 #' Harvard University, Boston.

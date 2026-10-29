@@ -29,6 +29,16 @@ decision would flip, and where new data would be worth the most.
    [dm_flow_from_dem()] and [dm_aggregate()].
 }
 
+\section{Acknowledgements}{
+
+The author gratefully acknowledges the Indian Council of Agricultural
+Research (ICAR), New Delhi, for providing the necessary research support.
+This work was carried out as part of the institute-funded project
+"Development of AI-driven solutions for quantifying runoff induced soil loss
+and nutrient loss" (NRMAIISWCSIL202400300220) at ICAR-Indian Institute of
+Soil and Water Conservation, Dehradun.
+}
+
 \references{
 Raiffa, H. and Schlaifer, R. (1961). *Applied Statistical Decision Theory*.
 Harvard University, Boston.
@@ -59,6 +69,11 @@ Useful links:
 }
 \author{
 \strong{Maintainer}: Sadikul Islam \email{sadikul.islamiasri@gmail.com} [copyright holder]
+
+Other contributors:
+\itemize{
+  \item Indian Council of Agricultural Research (Project NRMAIISWCSIL202400300220, ICAR-Indian Institute of Soil and Water Conservation, Dehradun) [funder]
+}
 
 }
 \keyword{internal}

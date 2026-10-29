@@ -214,3 +214,7 @@ terra::writeRaster(dm_as_raster(dec), "soc_decision.tif")
 
 Without a covariance matrix, `dm_voi()` assumes that a sample informs only its
 own location; supply `cov` or draws for spatially aware value of information.
+
+## Acknowledgements
+
+The author gratefully acknowledges the Indian Council of Agricultural Research (ICAR), New Delhi, for providing the necessary research support. This work was carried out as part of the institute-funded project “Development of AI-driven solutions for quantifying runoff induced soil loss and nutrient loss” (NRMAIISWCSIL202400300220) at ICAR–Indian Institute of Soil and Water Conservation, Dehradun.
