@@ -1,0 +1,48 @@
+Package: terravai
+Type: Package
+Title: Value of Information for Spatial Decisions from AI Predictions
+Version: 0.1.0
+Authors@R:
+    person("Sadikul", "Islam", email = "sadikul.islamiasri@gmail.com",
+           role = c("aut", "cre", "cph"))
+Description: Turns the predictive distribution of any spatial model, from
+    kriging and Bayesian models to artificial intelligence (AI) and machine
+    learning models such as quantile regression forests, deep ensembles and
+    conformal predictors, into decisions for threshold problems such as
+    liming, fertiliser targeting or declaring a well unsafe. Provides
+    decision, expected-loss, regret and break-even cost-ratio maps;
+    value-of-information maps, in closed form under Gaussian updating or by
+    an ensemble Kalman preposterior update that keeps the non-Gaussian shape
+    of machine-learning ensembles; greedy budget-constrained sampling designs
+    with a value-based stopping rule; decision-based comparison of competing
+    maps, including ranking reversals between accuracy and decision regret;
+    and a scale operator that carries every computation from pixels to
+    districts and watersheds. Machine-learning predictive quantiles are
+    joined across space with a spatial Gaussian copula. Also includes a
+    dependency-free kriging engine and plain-language summaries of decision
+    maps. Methods follow decision-theoretic value of information (Raiffa and
+    Schlaifer, 1961, "Applied Statistical Decision Theory"), threshold-based
+    elementary scores (Ehm et al., 2016, <doi:10.1111/rssb.12154>), quantile
+    regression forests (Meinshausen, 2006,
+    <https://www.jmlr.org/papers/v7/meinshausen06a.html>) and the ensemble
+    Kalman filter (Evensen, 1994, <doi:10.1029/94JC00572>).
+License: MIT + file LICENSE
+Language: en-GB
+Encoding: UTF-8
+Depends: R (>= 4.1.0)
+Imports:
+    graphics,
+    grDevices,
+    stats,
+    utils
+Suggests:
+    knitr,
+    ranger,
+    rmarkdown,
+    terra,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+RoxygenNote: 7.3.1
+URL: https://github.com/GITHUB_USER/terravai
+BugReports: https://github.com/GITHUB_USER/terravai/issues

@@ -1,0 +1,214 @@
+---
+title: "TerravAI: from AI predictions to spatial decisions"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{TerravAI: from AI predictions to spatial decisions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5,
+                      fig.height = 4.6, dpi = 80)
+```
+
+Most spatial maps are judged by how accurate they are. Most maps are used to
+*decide*: lime a field when pH is low, target zinc where crops are deficient,
+stop drinking from a well when arsenic is high. `terravai` evaluates and
+designs spatial information for those decisions, whether the predictions come
+from geostatistics or from AI and machine-learning models.
+
+```{r setup}
+library(terravai)
+```
+
+## 1. A landscape with known truth
+
+`dm_simulate()` creates a field on a grid, with noisy observations at a random
+sample of cells. Because the true field is known everywhere, we can check
+every decision later.
+
+```{r}
+sim <- dm_simulate(n_side = 25, n_obs = 50, seed = 11)
+sim
+```
+
+## 2. Any model that gives a predictive distribution
+
+Predictions can come from any model: give means and standard deviations
+(`dm_gaussian()`), simulations or posterior draws (`dm_draws()`), or predictive
+quantiles (`dm_quantiles()`). The package also includes a small kriging engine
+with maximum-likelihood fitting.
+
+```{r}
+cm <- dm_fit_cov(sim$obs[, c("x", "y")], sim$obs$z)
+cm
+fit <- dm_krige(sim$obs[, c("x", "y")], sim$obs$z, sim$grid[, c("x", "y")],
+                model = cm)
+```
+
+## 3. Describe the decision
+
+Action is needed where the value exceeds 0.5. Missing a needed action is
+judged four times worse than acting unnecessarily. The only stakeholder input
+is that cost ratio; `dm_cutoff()` shows the equivalent probability rule.
+
+```{r}
+loss <- dm_loss(0.5, direction = "above", ratio = 4, action = "intervene")
+loss
+dm_cutoff(4)
+```
+
+## 4. Decision maps
+
+```{r}
+dec <- dm_decide(fit, loss)
+summary(dec)
+```
+
+```{r, fig.height = 4.2}
+plot(dec, "act")
+plot(dec, "p_wrong")
+```
+
+The break-even map shows the cost ratio at which each decision would flip.
+Where it is far from the current ratio, the decision is robust to
+disagreement about costs.
+
+```{r, fig.height = 4.2}
+plot(dec, "breakeven")
+```
+
+## 5. Where is the next sample worth the most?
+
+The value of information (VOI) of a location is the expected reduction in
+decision loss from measuring it first. It is high only where a measurement
+could change a decision.
+
+```{r, fig.height = 4.2}
+v <- dm_voi(fit, loss, noise = cm$nugget)
+v
+plot(v)
+```
+
+`dm_design()` picks a survey greedily and stops when the next sample is worth
+less than it costs (`stop_below`, in loss units).
+
+```{r, fig.height = 4.2}
+des <- dm_design(fit, loss, n = 12, noise = cm$nugget)
+des
+plot(des)
+```
+
+## 6. Is the most accurate map the best decision map?
+
+Compare maps by accuracy and by realised regret against the truth. Here the
+same kriging means are used with the plug-in rule (act if the prediction is
+above the threshold, as accuracy-optimised maps are normally used) and with
+the expected-loss rule that also uses the uncertainty.
+
+```{r}
+d <- as.matrix(dist(rbind(sim$grid[, 1:2], sim$obs[, 1:2])))
+d <- d[seq_len(nrow(sim$grid)), nrow(sim$grid) + seq_len(nrow(sim$obs))]
+w <- 1 / pmax(d, 1e-6)^2
+idw <- as.numeric(w %*% sim$obs$z / rowSums(w))
+
+ev <- dm_evaluate(sim$grid$z,
+                  list(kriging_decision = fit, kriging_plugin = fit$mean, idw = idw),
+                  loss, ratios = c(1, 2, 4, 8))
+summary(ev)
+```
+
+```{r, fig.height = 4}
+plot(ev)
+```
+
+Both kriging maps have exactly the same accuracy, but very different decision
+quality once missed actions cost more than unneeded ones.
+
+## 7. AI and machine-learning predictions
+
+Machine-learning models predict each location separately. TerravAI turns
+their output into spatially coherent predictive distributions.
+
+**Quantile regression forest with a spatial copula.** `dm_fit_qrf()` fits a
+forest with 'ranger', estimates how its errors are correlated in space from
+out-of-bag residuals, and joins the forest's predictive quantiles across space
+with a Gaussian copula.
+
+```{r, eval = requireNamespace("ranger", quietly = TRUE)}
+set.seed(1)
+sim$grid$ndvi <- sim$grid$z + rnorm(nrow(sim$grid), 0, 0.6)   # a covariate
+train <- cbind(sim$obs, ndvi = sim$grid$ndvi[sim$obs$cell])
+qrf <- dm_fit_qrf(z ~ ndvi, train, sim$grid, num.trees = 200, seed = 1)
+qrf
+```
+
+**Value of information for AI ensembles.** For draws-based predictions,
+`dm_voi()` uses an ensemble Kalman update: it simulates possible measurements
+and updates the whole ensemble, so skewed or multimodal AI predictions keep
+their shape.
+
+```{r, eval = requireNamespace("ranger", quietly = TRUE), fig.height = 4.2}
+v_ai <- dm_voi(qrf, loss, noise = cm$nugget, seed = 1)
+plot(v_ai, main = "Value of information for the forest's decisions")
+```
+
+**Any point predictor.** `dm_conformal()` wraps any AI model's point
+predictions (boosting, neural networks) into a predictive distribution using
+held-out calibration errors.
+
+```{r}
+calib <- seq(1, nrow(sim$grid), by = 5)        # held-out calibration cells
+naive <- 0.8 * sim$grid$z + 0.2                 # stand-in for an AI model's predictions
+conf <- dm_conformal(naive, sim$grid$z[calib], naive[calib],
+                     coords = sim$grid[, c("x", "y")], copula = cm, seed = 1)
+summary(dm_evaluate(sim$grid$z, list(kriging = fit, conformal_ai = conf), loss,
+                    ratios = c(1, 4)))
+```
+
+**Plain-language summary** for farmers and officers:
+
+```{r}
+dm_narrate(dec, voi = des, area = "the study area")
+```
+
+## 8. Districts and watersheds
+
+Decisions are often made for aggregates. A scale operator `H` maps the field
+to the decision quantity: block means for districts, flow accumulation for
+watersheds. Correlations are propagated exactly.
+
+```{r}
+district <- paste0("D", (sim$grid$x > 0.5) + 2 * (sim$grid$y > 0.5) + 1)
+H <- dm_block_matrix(district)
+dm_decide(dm_aggregate(fit, H), dm_loss(0, "above", ratio = 4))
+```
+
+For a watershed, flow directions come from an elevation grid:
+
+```{r, fig.height = 4.2}
+elev <- outer(1:25, 1:25, function(i, j) 0.6 * i + j + 2 * sin(i / 3))
+to <- dm_flow_from_dem(elev)
+outlet <- which(is.na(to))
+Hout <- dm_flow_matrix(to, delivery = 0.95)[outlet, , drop = FALSE]
+load_now <- dm_aggregate(fit, Hout)
+load_now
+v_out <- dm_voi(fit, dm_loss(load_now$mean[1], "above", ratio = 4),
+                target = Hout, noise = cm$nugget)
+plot(v_out, main = "Value of information for the outlet decision")
+```
+
+## Using your own data
+
+Any spatial model can be used. For example, with `terra` rasters of a
+prediction and its standard deviation:
+
+```{r, eval = FALSE}
+p <- dm_gaussian(mean = terra::rast("soc_mean.tif"), sd = terra::rast("soc_sd.tif"))
+dec <- dm_decide(p, dm_loss(1, "below", ratio = 3, action = "add organic matter"))
+terra::writeRaster(dm_as_raster(dec), "soc_decision.tif")
+```
+
+Without a covariance matrix, `dm_voi()` assumes that a sample informs only its
+own location; supply `cov` or draws for spatially aware value of information.
