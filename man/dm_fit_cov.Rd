@@ -11,7 +11,8 @@ dm_fit_cov(
   model = "exponential",
   kappa = 0.5,
   reml = TRUE,
-  start = NULL
+  start = NULL,
+  n_starts = 4
 )
 }
 \arguments{
@@ -28,10 +29,15 @@ dm_fit_cov(
 \item{reml}{Use restricted maximum likelihood.}
 
 \item{start}{Optional starting values `c(psill, range, nugget)`.}
+
+\item{n_starts}{Number of starting values tried (1 to 4); the fit with the
+highest likelihood is kept.}
 }
 \value{
 A fitted `dm_covmodel` with extra elements `beta` (trend
-  coefficients), `loglik` and `method`.
+  coefficients), `loglik`, `method`, `convergence` (0 = converged) and
+  `at_bound` (parameters at the search limits). A warning is given when
+  the optimiser does not converge or a parameter ends at its limit.
 }
 \description{
 Estimates the partial sill, range and nugget of a covariance model, with a
@@ -40,6 +46,6 @@ linear trend on optional covariates, by restricted maximum likelihood
 observations.
 }
 \examples{
-sim <- dm_simulate(n_side = 10, n_obs = 60, seed = 4)
+sim <- dm_simulate(n_side = 10, n_obs = 60, seed = 5)
 dm_fit_cov(sim$obs[, c("x", "y")], sim$obs$z)
 }

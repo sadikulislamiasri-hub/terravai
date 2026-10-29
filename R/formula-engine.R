@@ -19,14 +19,22 @@
 #'   `"lognormal"` (always positive; `mean` and `sd` on the original scale).
 #' @param lower,upper Physical bounds; normal draws are truncated to them.
 #' @param coords Optional coordinates (taken from the raster when `mean` is a
-#'   `SpatRaster`).
+#'   `SpatRaster`); required for a spatial `correlation`.
+#' @param correlation How errors at different locations relate:
+#'   `"independent"` (separate errors, e.g. measurement noise),
+#'   `"common"` (one shared error for all locations, e.g. the uncertainty of a
+#'   regional coefficient or equation), or a `dm_covmodel` / correlation
+#'   matrix for spatially correlated errors (a Gaussian copula). The choice
+#'   matters for totals over an area and for value of information: shared or
+#'   correlated errors do not average out.
 #' @return An object of class `dm_uncertain`.
 #' @examples
 #' cn <- dm_uncertain(78, sd = 4, lower = 30, upper = 100)
 #' dm_runoff_cn(P = 80, CN = cn, n_draws = 500, seed = 1)
 #' @export
 dm_uncertain <- function(mean, sd = NULL, cv = NULL, dist = c("normal", "lognormal"),
-                         lower = -Inf, upper = Inf, coords = NULL) {
+                         lower = -Inf, upper = Inf, coords = NULL,
+                         correlation = "independent") {
   dist <- match.arg(dist)
   template <- cells <- NULL
   if (inherits(mean, "SpatRaster")) {
@@ -44,14 +52,23 @@ dm_uncertain <- function(mean, sd = NULL, cv = NULL, dist = c("normal", "lognorm
     stop("'mean' and 'sd' must be finite with sd >= 0.", call. = FALSE)
   }
   if (dist == "lognormal" && any(mean <= 0)) stop("Lognormal inputs need mean > 0.", call. = FALSE)
+  coords <- if (!is.null(coords)) .as_coords(coords, n) else NULL
+  if (is.character(correlation)) {
+    correlation <- match.arg(correlation, c("independent", "common"))
+    R <- NULL
+  } else {
+    R <- .copula_cor(correlation, coords, n)
+    correlation <- "spatial"
+  }
   structure(list(mean = mean, sd = sd, dist = dist, lower = lower, upper = upper,
-                 coords = if (!is.null(coords)) .as_coords(coords, n) else NULL,
+                 coords = coords, correlation = correlation, R = R,
                  template = template, cells = cells), class = "dm_uncertain")
 }
 
 #' @export
 print.dm_uncertain <- function(x, ...) {
-  cat("<dm_uncertain> ", length(x$mean), " value(s), ", x$dist, ", mean ",
+  cat("<dm_uncertain> ", length(x$mean), " value(s), ", x$dist, " (",
+      x$correlation %||% "independent", " errors), mean ",
       format(signif(min(x$mean), 4)), " to ", format(signif(max(x$mean), 4)),
       ", sd ", format(signif(min(x$sd), 3)), " to ", format(signif(max(x$sd), 3)), "\n", sep = "")
   invisible(x)
@@ -59,18 +76,25 @@ print.dm_uncertain <- function(x, ...) {
 
 .draw_uncertain <- function(u, M) {
   n <- length(u$mean)
+  corr <- u$correlation %||% "independent"
+  U <- if (corr == "common") {
+    matrix(rep(stats::runif(M), each = n), n, M)
+  } else if (corr == "spatial") {
+    .copula_uniforms(n, M, u$R)
+  } else {
+    matrix(stats::runif(n * M), n, M)
+  }
+  U <- pmin(pmax(U, 1e-12), 1 - 1e-12)
   if (u$dist == "lognormal") {
     s2 <- log(1 + (u$sd / u$mean)^2)
     mu <- log(u$mean) - s2 / 2
-    return(matrix(exp(stats::rnorm(n * M, mu, sqrt(s2))), n, M))
+    return(matrix(stats::qlnorm(U, mu, sqrt(s2)), n, M))
   }
   # truncated normal by inversion
   a <- stats::pnorm((u$lower - u$mean) / pmax(u$sd, 1e-300))
   b <- stats::pnorm((u$upper - u$mean) / pmax(u$sd, 1e-300))
-  U <- matrix(stats::runif(n * M), n, M)
-  P <- a + U * (b - a)
-  P <- pmin(pmax(P, 1e-12), 1 - 1e-12)
-  out <- u$mean + u$sd * stats::qnorm(P)
+  P <- pmin(pmax(a + U * (b - a), 1e-12), 1 - 1e-12)
+  out <- matrix(u$mean + u$sd * stats::qnorm(P), n, M)
   out[u$sd == 0, ] <- u$mean[u$sd == 0]
   pmin(pmax(out, u$lower), u$upper)
 }

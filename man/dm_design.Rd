@@ -47,13 +47,18 @@ per location) for decisions about aggregates `Q = H Z`, such as district
 means ([dm_block_matrix()]) or watershed loads ([dm_flow_matrix()]). If
 `NULL`, one decision is made per location.}
 
-\item{n_quad}{Number of quadrature nodes (Gaussian method).}
+\item{n_quad}{Number of quadrature nodes on each side of the decision
+switch point (Gaussian method).}
 
 \item{lazy}{Use lazy greedy evaluation: values computed earlier are reused
 as upper bounds and only the leading candidate is re-evaluated. This is
-much faster and exact whenever the value of a candidate does not increase
-as other samples are added, which is the usual case; set `FALSE` to
-re-evaluate every candidate at every step.}
+much faster and gives the same design whenever a candidate's value does
+not increase as other samples are added. Value of information usually,
+but not always, behaves this way (two nearby samples can occasionally
+complement each other), so the lazy design can differ slightly; in tests
+on simulated landscapes it chose the same sites in 13 of 15 cases and
+otherwise reached at least 99.98\% of the value of the full search. Set
+`FALSE` to re-evaluate every candidate at every step.}
 
 \item{x}{A `dm_design` object.}
 

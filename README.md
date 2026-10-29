@@ -58,6 +58,22 @@ dm_outlet_load(soil$mean, ws$to, delivery = 0.9, cell_area = 0.09)
 plot(dm_voi(soil, dm_loss_tolerance(), method = "ensemble", seed = 1))
 ```
 
+## Uncertainty you can trust
+
+* **Input uncertainty:** any input can be uncertain with `dm_uncertain()`, as
+  independent errors, an error common to the whole area (such as a regional
+  equation's coefficients) or spatially correlated errors.
+* **Convergence checks:** `dm_convergence()` reports Monte Carlo standard
+  errors, flags decisions that could still change by chance, and recommends
+  the number of draws.
+* **Verified numerics:**
+  * Monte Carlo errors fall at the theoretical 1/sqrt(n) rate.
+  * The closed-form value of information agrees with Monte Carlo and is
+    accurate to better than 0.1%.
+  * The ensemble method converges to the exact answer as draws increase.
+  * Covariance fitting uses several starting values and warns when a
+    parameter is poorly determined.
+
 ## Use anywhere: pan-India and global
 
 Every tool runs on any area with freely available data, on projected or

@@ -36,7 +36,8 @@ per location) for decisions about aggregates `Q = H Z`, such as district
 means ([dm_block_matrix()]) or watershed loads ([dm_flow_matrix()]). If
 `NULL`, one decision is made per location.}
 
-\item{n_quad}{Number of quadrature nodes (Gaussian method).}
+\item{n_quad}{Number of quadrature nodes on each side of the decision
+switch point (Gaussian method).}
 
 \item{method}{`"auto"`, `"gaussian"` or `"ensemble"` (see Details).}
 
@@ -78,16 +79,21 @@ Two methods are available.
 
 * `"gaussian"` assumes Gaussian updating: the predictive mean after
   sampling is Gaussian around the current mean and the posterior variance is
-  known in advance. Expectations over the future mean use Gauss-Hermite
-  quadrature, so fixed and linear losses are handled exactly under this
-  assumption. For draws, their means and covariance are used.
+  known in advance. The expected loss after sampling is integrated
+  separately on each side of the point where the decision switches
+  (Gauss-Legendre quadrature in probability space), which is accurate to
+  better than 0.1% relative error with the default 20 nodes per side, for
+  fixed and linear losses. For draws, their means and covariance are used.
 * `"ensemble"` works directly on Monte Carlo draws, such as AI and
   machine-learning ensembles, quantile-forest draws or posterior samples. For
   each candidate it simulates possible measurements and updates the whole
   ensemble with an ensemble Kalman (perturbed-observation) update (Evensen,
   1994). Losses are then evaluated on the updated ensemble, so skewed and
   multimodal predictive distributions keep their shape. Results carry Monte
-  Carlo error, which falls as the number of draws grows.
+  Carlo error, which falls as the number of draws grows. Against the exact
+  Gaussian solution, totals were about 10\% high with 200 draws, 4\% with
+  1,000 and within 1\% with 3,000 (correlation across candidates 0.97,
+  0.99 and 0.998), so use at least 1,000 draws, and 3,000 for totals.
 
 `"auto"` uses `"ensemble"` for draws-based predictions with at most 1,000
 candidates and `"gaussian"` otherwise.

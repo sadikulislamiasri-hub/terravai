@@ -80,6 +80,22 @@ dm_cov <- function(coords1, coords2 = NULL, model, nugget = FALSE) {
   C
 }
 
+.safe_chol <- function(K) {
+  L <- tryCatch(chol(K), error = function(e) NULL)
+  if (!is.null(L)) return(L)
+  jit <- 1e-10 * mean(diag(K))
+  for (i in 1:8) {
+    L <- tryCatch(chol(K + diag(jit, nrow(K))), error = function(e) NULL)
+    if (!is.null(L)) {
+      warning("Covariance matrix was not positive definite (duplicate locations or a zero ",
+              "nugget?); added ", format(signif(jit, 2)), " to the diagonal.", call. = FALSE)
+      return(L)
+    }
+    jit <- jit * 100
+  }
+  stop("Covariance matrix is not positive definite.", call. = FALSE)
+}
+
 .design_X <- function(X, n) {
   if (is.null(X)) return(matrix(1, n, 1, dimnames = list(NULL, "(Intercept)")))
   X <- as.matrix(X)
@@ -119,18 +135,22 @@ dm_cov <- function(coords1, coords2 = NULL, model, nugget = FALSE) {
 #' @param kappa Matern smoothness (fixed).
 #' @param reml Use restricted maximum likelihood.
 #' @param start Optional starting values `c(psill, range, nugget)`.
+#' @param n_starts Number of starting values tried (1 to 4); the fit with the
+#'   highest likelihood is kept.
 #' @return A fitted `dm_covmodel` with extra elements `beta` (trend
-#'   coefficients), `loglik` and `method`.
+#'   coefficients), `loglik`, `method`, `convergence` (0 = converged) and
+#'   `at_bound` (parameters at the search limits). A warning is given when
+#'   the optimiser does not converge or a parameter ends at its limit.
 #' @examples
-#' sim <- dm_simulate(n_side = 10, n_obs = 60, seed = 4)
+#' sim <- dm_simulate(n_side = 10, n_obs = 60, seed = 5)
 #' dm_fit_cov(sim$obs[, c("x", "y")], sim$obs$z)
 #' @export
 dm_fit_cov <- function(coords, y, X = NULL, model = "exponential", kappa = 0.5,
-                       reml = TRUE, start = NULL) {
+                       reml = TRUE, start = NULL, n_starts = 4) {
   y <- as.numeric(y)
   n <- length(y)
   if (n < 10) stop("At least 10 observations are needed.", call. = FALSE)
-  coords <- as.matrix(coords)[, 1:2]
+  coords <- as.matrix(coords)[, 1:2, drop = FALSE]
   if (nrow(coords) != n) stop("'coords' and 'y' differ in length.", call. = FALSE)
   Xd <- .design_X(X, n)
   D <- .crossdist(coords, coords)
@@ -140,9 +160,31 @@ dm_fit_cov <- function(coords, y, X = NULL, model = "exponential", kappa = 0.5,
   model <- match.arg(model, c("exponential", "spherical", "gaussian", "matern"))
   lo <- log(c(v * 1e-4, max(D) * 1e-3, v * 1e-6))
   hi <- log(c(v * 20, max(D) * 5, v * 20))
-  opt <- stats::optim(pmin(pmax(log(start), lo), hi), .negll, D = D, y = y, X = Xd,
-                      model = model, kappa = kappa, reml = reml, method = "L-BFGS-B",
-                      lower = lo, upper = hi)
+  # multi-start optimisation: the likelihood surface of covariance models is
+  # often flat or multimodal in the range, so several starts are compared
+  starts <- list(start, c(0.5 * v, max(D) / 20, 0.5 * v), c(0.9 * v, max(D) / 3, 0.1 * v),
+                 c(0.3 * v, max(D) / 10, 0.7 * v))[seq_len(max(1, min(n_starts, 4)))]
+  fits <- lapply(starts, function(st) {
+    tryCatch(stats::optim(pmin(pmax(log(st), lo), hi), .negll, D = D, y = y, X = Xd,
+                          model = model, kappa = kappa, reml = reml, method = "L-BFGS-B",
+                          lower = lo, upper = hi), error = function(e) NULL)
+  })
+  fits <- Filter(Negate(is.null), fits)
+  if (!length(fits)) stop("Covariance fitting failed from every starting value.", call. = FALSE)
+  opt <- fits[[which.min(vapply(fits, `[[`, numeric(1), "value"))]]
+  at_bound <- c(psill = FALSE, range = FALSE, nugget = FALSE)
+  at_bound[] <- (opt$par - lo) < 1e-3 | (hi - opt$par) < 1e-3
+  at_bound[["nugget"]] <- (hi[3] - opt$par[3]) < 1e-3     # a zero nugget is legitimate
+  if (opt$convergence != 0) {
+    warning("Covariance fitting did not converge (optim code ", opt$convergence, ").",
+            call. = FALSE)
+  }
+  if (any(at_bound)) {
+    warning("Fitted ", paste(names(at_bound)[at_bound], collapse = ", "),
+            " at the search limit: spatial dependence is weakly identified ",
+            "(e.g. range larger than the study area). Interpret with care or fix it via 'start'.",
+            call. = FALSE)
+  }
   cm <- dm_covmodel(model, psill = exp(opt$par[1]), range = exp(opt$par[2]),
                     nugget = exp(opt$par[3]), kappa = kappa)
   K <- dm_cov(coords, model = cm, nugget = TRUE)
@@ -155,6 +197,7 @@ dm_fit_cov <- function(coords, y, X = NULL, model = "exponential", kappa = 0.5,
   cm$loglik <- -opt$value - (n - if (reml) ncol(Xd) else 0) / 2 * log(2 * pi)
   cm$method <- if (reml) "REML" else "ML"
   cm$convergence <- opt$convergence
+  cm$at_bound <- at_bound
   cm
 }
 
@@ -182,12 +225,12 @@ dm_fit_cov <- function(coords, y, X = NULL, model = "exponential", kappa = 0.5,
 dm_krige <- function(coords, y, newcoords, model, X = NULL, newX = NULL, full_cov = TRUE) {
   if (!inherits(model, "dm_covmodel")) stop("'model' must be a dm_covmodel.", call. = FALSE)
   y <- as.numeric(y); n <- length(y)
-  coords <- as.matrix(coords)[, 1:2]; newcoords <- as.matrix(newcoords)[, 1:2]
+  coords <- as.matrix(coords)[, 1:2, drop = FALSE]; newcoords <- as.matrix(newcoords)[, 1:2, drop = FALSE]
   m <- nrow(newcoords)
   if (xor(is.null(X), is.null(newX))) stop("Supply both 'X' and 'newX', or neither.", call. = FALSE)
   Xd <- .design_X(X, n); X0 <- .design_X(newX, m)
   K <- dm_cov(coords, model = model, nugget = TRUE)
-  L <- chol(K)
+  L <- .safe_chol(K)
   k0 <- dm_cov(coords, newcoords, model)
   Ki_k0 <- backsolve(L, forwardsolve(t(L), k0))
   Ki_X <- backsolve(L, forwardsolve(t(L), Xd))

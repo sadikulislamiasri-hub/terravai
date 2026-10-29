@@ -11,7 +11,8 @@ dm_uncertain(
   dist = c("normal", "lognormal"),
   lower = -Inf,
   upper = Inf,
-  coords = NULL
+  coords = NULL,
+  correlation = "independent"
 )
 }
 \arguments{
@@ -28,7 +29,15 @@ single-layer `SpatRaster`.}
 \item{lower, upper}{Physical bounds; normal draws are truncated to them.}
 
 \item{coords}{Optional coordinates (taken from the raster when `mean` is a
-`SpatRaster`).}
+`SpatRaster`); required for a spatial `correlation`.}
+
+\item{correlation}{How errors at different locations relate:
+`"independent"` (separate errors, e.g. measurement noise),
+`"common"` (one shared error for all locations, e.g. the uncertainty of a
+regional coefficient or equation), or a `dm_covmodel` / correlation
+matrix for spatially correlated errors (a Gaussian copula). The choice
+matters for totals over an area and for value of information: shared or
+correlated errors do not average out.}
 }
 \value{
 An object of class `dm_uncertain`.

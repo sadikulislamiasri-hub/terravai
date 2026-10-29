@@ -62,6 +62,16 @@ soil <- dm_rusle(R = dm_uncertain(g$R, cv = 0.15, lower = 0, coords = xy),
 soil
 ```
 
+Are 300 draws enough? `dm_convergence()` checks the Monte Carlo error:
+
+```{r}
+dm_convergence(soil, dm_loss_tolerance())
+```
+
+If erosivity comes from one regional equation, its error is shared by every
+cell and does not average out over the watershed; say so with
+`correlation = "common"` in `dm_uncertain()`.
+
 ## 4. Where is soil loss above the tolerable limit?
 
 ```{r, fig.height = 4.2}

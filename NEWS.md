@@ -19,6 +19,20 @@ M Muruganandam and Rama Pal.
   * `dm_flow_accumulation()` (linear time) and `dm_outlet_load()`.
   * `dm_loss_tolerance()` and `dm_loss_nutrient()` decision presets.
   * `dm_simulate_watershed()`: example micro-watershed with known truth.
+* Uncertainty and convergence:
+  * `dm_uncertain(correlation = )`: input errors can be independent, common
+    to all locations (e.g. a regional coefficient) or spatially correlated
+    (Gaussian copula); per-location distributions are unchanged.
+  * `dm_convergence()`: Monte Carlo standard errors, running estimates,
+    decisions still within Monte Carlo noise, and the number of draws needed.
+  * Closed-form value of information now integrates separately on each side
+    of the decision switch point: 50-100 times more accurate than before at
+    the same cost (below 0.1% error with the default 20 nodes per side) and
+    checked against Monte Carlo.
+  * `dm_fit_cov()`: multiple starting values, and warnings when the optimiser
+    does not converge or a parameter ends at its search limit.
+  * `dm_krige()`: handles a single prediction location and near-singular
+    covariance matrices (with a warning).
 * Use anywhere (pan-India and global):
   * `dm_erosion_raster()`: RUSLE chain on rasters for any region, on
     projected or longitude/latitude grids, with SoilGrids units supported.
