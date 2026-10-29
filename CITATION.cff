@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "TerravAI: Threshold Expected-Regret and Risk Analysis with Value of Information and Artificial Intelligence"
+abstract: "R package terravai: spatial value of information from AI predictions."
+version: 0.1.0
+date-released: 2026-10-29
+license: MIT
+repository-code: "https://github.com/GITHUB_USER/terravai"
+keywords:
+  - spatial statistics
+  - value of information
+  - decision analysis
+  - artificial intelligence
+  - sampling design
+  - kriging
+  - R
+authors:
+  - family-names: Islam
+    given-names: Sadikul
+    email: sadikul.islamiasri@gmail.com
+    orcid: "https://orcid.org/0000-0003-2924-7122"
+  - family-names: Kaushal
+    given-names: Rajesh
+  - family-names: Ali
+    given-names: Shakir
+  - family-names: Shankar
+    given-names: M
+  - family-names: Muruganandam
+    given-names: M
+  - family-names: Pal
+    given-names: Rama

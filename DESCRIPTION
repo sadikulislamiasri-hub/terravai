@@ -4,7 +4,12 @@ Title: Spatial Value of Information from AI Predictions
 Version: 0.1.0
 Authors@R: c(
     person("Sadikul", "Islam", email = "sadikul.islamiasri@gmail.com",
-           role = c("aut", "cre", "cph")),
+           role = c("aut", "cre"), comment = c(ORCID = "0000-0003-2924-7122")),
+    person("Rajesh", "Kaushal", role = "aut"),
+    person("Shakir", "Ali", role = "aut"),
+    person("M", "Shankar", role = "aut"),
+    person("M", "Muruganandam", role = "aut"),
+    person("Rama", "Pal", role = "aut"),
     person("Indian Council of Agricultural Research", role = "fnd",
            comment = "Project NRMAIISWCSIL202400300220, ICAR-Indian Institute of Soil and Water Conservation, Dehradun"))
 Description: Turns the predictive distribution of any spatial model, from

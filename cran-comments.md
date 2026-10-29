@@ -1,5 +1,10 @@
 ## Submission
 
+Maintainer: Sadikul Islam <sadikul.islamiasri@gmail.com> (ORCID 0000-0003-2924-7122)
+
+Authors: Sadikul Islam, Rajesh Kaushal, Shakir Ali, M Shankar, M Muruganandam,
+Rama Pal. Funder: Indian Council of Agricultural Research (ICAR).
+
 This is a new submission.
 
 ## Test environments

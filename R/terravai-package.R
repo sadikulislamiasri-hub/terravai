@@ -22,7 +22,7 @@
 #'    [dm_flow_from_dem()] and [dm_aggregate()].
 #'
 #' @section Acknowledgements:
-#' The author gratefully acknowledges the Indian Council of Agricultural
+#' The authors gratefully acknowledge the Indian Council of Agricultural
 #' Research (ICAR), New Delhi, for providing the necessary research support.
 #' This work was carried out as part of the institute-funded project
 #' "Development of AI-driven solutions for quantifying runoff induced soil loss

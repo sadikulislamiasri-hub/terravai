@@ -31,7 +31,7 @@ decision would flip, and where new data would be worth the most.
 
 \section{Acknowledgements}{
 
-The author gratefully acknowledges the Indian Council of Agricultural
+The authors gratefully acknowledge the Indian Council of Agricultural
 Research (ICAR), New Delhi, for providing the necessary research support.
 This work was carried out as part of the institute-funded project
 "Development of AI-driven solutions for quantifying runoff induced soil loss
@@ -68,7 +68,16 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Sadikul Islam \email{sadikul.islamiasri@gmail.com} [copyright holder]
+\strong{Maintainer}: Sadikul Islam \email{sadikul.islamiasri@gmail.com} (\href{https://orcid.org/0000-0003-2924-7122}{ORCID})
+
+Authors:
+\itemize{
+  \item Rajesh Kaushal
+  \item Shakir Ali
+  \item M Shankar
+  \item M Muruganandam
+  \item Rama Pal
+}
 
 Other contributors:
 \itemize{

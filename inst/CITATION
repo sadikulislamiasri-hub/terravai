@@ -1,7 +1,9 @@
 bibentry(
   bibtype = "Manual",
   title = "{TerravAI}: Threshold Expected-Regret and Risk Analysis with Value of Information and Artificial Intelligence",
-  author = person("Sadikul", "Islam"),
+  author = c(person("Sadikul", "Islam"), person("Rajesh", "Kaushal"),
+             person("Shakir", "Ali"), person("M", "Shankar"),
+             person("M", "Muruganandam"), person("Rama", "Pal")),
   year = "2026",
   note = "R package terravai version 0.1.0",
   url = "https://github.com/GITHUB_USER/terravai"

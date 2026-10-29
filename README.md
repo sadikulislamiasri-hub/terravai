@@ -94,10 +94,20 @@ a correlation of 0.99 across candidate sites.
 citation("terravai")
 ```
 
+## Authors
+
+- **Sadikul Islam** (author, maintainer) [![ORCID](https://img.shields.io/badge/ORCID-0000--0003--2924--7122-a6ce39)](https://orcid.org/0000-0003-2924-7122)
+- Rajesh Kaushal (author)
+- Shakir Ali (author)
+- M Shankar (author)
+- M Muruganandam (author)
+- Rama Pal (author)
+
 ## Acknowledgements
 
-The author gratefully acknowledges the Indian Council of Agricultural Research (ICAR), New Delhi, for providing the necessary research support. This work was carried out as part of the institute-funded project “Development of AI-driven solutions for quantifying runoff induced soil loss and nutrient loss” (NRMAIISWCSIL202400300220) at ICAR–Indian Institute of Soil and Water Conservation, Dehradun.
+The authors gratefully acknowledge the Indian Council of Agricultural Research (ICAR), New Delhi, for providing the necessary research support. This work was carried out as part of the institute-funded project “Development of AI-driven solutions for quantifying runoff induced soil loss and nutrient loss” (NRMAIISWCSIL202400300220) at ICAR–Indian Institute of Soil and Water Conservation, Dehradun.
 
 ## License
 
-MIT © Sadikul Islam
+MIT © terravai authors (Sadikul Islam, Rajesh Kaushal, Shakir Ali, M Shankar,
+M Muruganandam and Rama Pal)
