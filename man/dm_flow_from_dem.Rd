@@ -4,11 +4,16 @@
 \alias{dm_flow_from_dem}
 \title{Flow directions from a gridded elevation model (D8)}
 \usage{
-dm_flow_from_dem(elev)
+dm_flow_from_dem(elev, dx = 1, dy = 1)
 }
 \arguments{
-\item{elev}{Numeric matrix of elevations (rows = y, columns = x), or a
-single-layer `SpatRaster`.}
+\item{elev}{Numeric matrix of elevations, or a single-layer `SpatRaster`.
+Fill sinks first with [dm_fill_sinks()] for real elevation models.}
+
+\item{dx, dy}{Cell spacing along matrix rows (`dx`, first index) and
+columns (`dy`, second index), used for diagonal and non-square cells.
+Taken from the raster (in metres, also for longitude/latitude grids)
+when `elev` is a `SpatRaster`.}
 }
 \value{
 An integer vector `to` of length `length(elev)`, indexing cells in

@@ -119,6 +119,10 @@ print.dm_uncertain <- function(x, ...) {
         } else if (inherits(a, "dm_predictive")) {
           D <- if (!is.null(a$draws)) {
             a$draws[, rep_len(seq_len(ncol(a$draws)), M), drop = FALSE]
+          } else if (!is.null(a$cov)) {
+            # keep the spatial correlation of a full predictive covariance
+            L <- .safe_chol(a$cov + diag(1e-10 * mean(diag(a$cov)), nrow(a$cov)))
+            a$mean + crossprod(L, matrix(stats::rnorm(length(a$mean) * M), length(a$mean), M))
           } else {
             matrix(stats::rnorm(length(a$mean) * M, a$mean, a$sd), length(a$mean), M)
           }
@@ -126,10 +130,15 @@ print.dm_uncertain <- function(x, ...) {
           stop("Do not mix SpatRaster and uncertain inputs; wrap the raster with ",
                "dm_uncertain() or extract its values.", call. = FALSE)
         } else {
+          if (!length(a) %in% c(1L, n)) {
+            stop("Input '", nm, "' has length ", length(a), "; expected 1 or ", n, ".",
+                 call. = FALSE)
+          }
           D <- matrix(rep_len(a, n), n, M)
         }
         if (nrow(D) == 1L && n > 1L) D <- D[rep(1L, n), , drop = FALSE]
-        if (nrow(D) != n) stop("Uncertain inputs have different lengths.", call. = FALSE)
+        if (nrow(D) != n) stop("Input '", nm, "' has ", nrow(D), " locations; expected 1 or ",
+                               n, ".", call. = FALSE)
         D
       })
       names(mats) <- names(args)
@@ -147,6 +156,13 @@ print.dm_uncertain <- function(x, ...) {
     out <- terra::rast(tmpl)
     terra::values(out) <- as.numeric(v)
     return(out)
+  }
+  lens <- vapply(args, length, integer(1))
+  n <- max(lens)
+  if (any(!lens %in% c(1L, n))) {
+    bad <- names(args)[!lens %in% c(1L, n)]
+    stop("Input(s) ", paste0("'", bad, "'", collapse = ", "), " must have length 1 or ", n, ".",
+         call. = FALSE)
   }
   do.call(fun, args)
 }

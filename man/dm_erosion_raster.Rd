@@ -17,7 +17,8 @@ dm_erosion_raster(
   P = 1,
   texture_unit = c("percent", "g_kg"),
   soc_unit = c("percent", "g_kg", "dg_kg"),
-  max_slope_length = 300
+  max_slope_length = 300,
+  fill_sinks = TRUE
 )
 }
 \arguments{
@@ -43,6 +44,9 @@ or supply `K`.}
 
 \item{max_slope_length}{Cap on the specific catchment area used in the LS
 factor (m), to avoid treating channels as hillslopes.}
+
+\item{fill_sinks}{Fill pits and flats before flow routing
+([dm_fill_sinks()]); strongly recommended for real elevation models.}
 }
 \value{
 A `SpatRaster` with layers `slope` (degrees), `flow_acc` (cells),

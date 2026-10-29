@@ -85,8 +85,12 @@ dm_flow_matrix <- function(to, delivery = 1) {
 #' of elevations, giving the `to` vector needed by [dm_flow_matrix()]. Cells
 #' with no lower neighbour drain nowhere (outlets or pits).
 #'
-#' @param elev Numeric matrix of elevations (rows = y, columns = x), or a
-#'   single-layer `SpatRaster`.
+#' @param elev Numeric matrix of elevations, or a single-layer `SpatRaster`.
+#'   Fill sinks first with [dm_fill_sinks()] for real elevation models.
+#' @param dx,dy Cell spacing along matrix rows (`dx`, first index) and
+#'   columns (`dy`, second index), used for diagonal and non-square cells.
+#'   Taken from the raster (in metres, also for longitude/latitude grids)
+#'   when `elev` is a `SpatRaster`.
 #' @return An integer vector `to` of length `length(elev)`, indexing cells in
 #'   column-major order of the matrix (or raster cell order for a
 #'   `SpatRaster`), with `NA` for cells that drain nowhere.
@@ -96,11 +100,17 @@ dm_flow_matrix <- function(to, delivery = 1) {
 #' H <- dm_flow_matrix(to)
 #' sum(H[1, ])   # every cell drains to the corner
 #' @export
-dm_flow_from_dem <- function(elev) {
+dm_flow_from_dem <- function(elev, dx = 1, dy = 1) {
   if (inherits(elev, "SpatRaster")) {
     if (!requireNamespace("terra", quietly = TRUE)) stop("Package 'terra' is needed.", call. = FALSE)
-    m <- terra::as.matrix(elev, wide = TRUE)
-    to_m <- dm_flow_from_dem(m)
+    m <- terra::as.matrix(elev[[1]], wide = TRUE)
+    rs <- terra::res(elev)
+    if (terra::is.lonlat(elev)) {
+      lat <- mean(as.vector(terra::ext(elev))[3:4]) * pi / 180
+      rs <- c(rs[1] * 111320 * cos(lat), rs[2] * 110574)
+    }
+    # matrix rows run along y (dy = cell height), columns along x (dx = cell width)
+    to_m <- dm_flow_from_dem(m, dx = rs[2], dy = rs[1])
     # matrix is row-major in raster cell order: convert index
     nr <- nrow(m); nc <- ncol(m)
     rc <- function(k) ((k - 1) %% nr) * nc + (k - 1) %/% nr + 1
@@ -114,7 +124,7 @@ dm_flow_from_dem <- function(elev) {
   pad <- matrix(NA_real_, nr + 2, nc + 2)
   pad[2:(nr + 1), 2:(nc + 1)] <- elev
   dr <- c(-1, -1, -1, 0, 0, 1, 1, 1); dc <- c(-1, 0, 1, -1, 1, -1, 0, 1)
-  dd <- sqrt(dr^2 + dc^2)
+  dd <- sqrt((dr * dx)^2 + (dc * dy)^2)
   S <- matrix(-Inf, nr * nc, 8)
   for (k in 1:8) {
     nb <- pad[(2:(nr + 1)) + dr[k], (2:(nc + 1)) + dc[k]]

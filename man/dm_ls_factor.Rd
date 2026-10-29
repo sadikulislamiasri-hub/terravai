@@ -25,7 +25,9 @@ dm_ls_factor(
 \item{method}{`"moore"` or `"wischmeier"`.}
 }
 \value{
-LS factor (dimensionless).
+LS factor (dimensionless). A warning is given when more than 5\%
+  of slopes exceed 50\% (26.6 degrees), beyond the plot data on which the
+  (R)USLE slope relations were based.
 }
 \description{
 Computes the topographic LS factor of the (Revised) Universal Soil Loss

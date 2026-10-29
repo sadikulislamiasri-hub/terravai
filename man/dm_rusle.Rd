@@ -28,6 +28,13 @@ a raster or an uncertain input ([dm_uncertain()]); with uncertain factors
 the result is a predictive distribution of soil loss that can be used
 directly with [dm_decide()], [dm_voi()] and [dm_design()].
 }
+\section{Scope}{
+ (R)USLE estimates long-term average sheet and rill
+  erosion. It does not represent gully, ravine, landslide, streambank or
+  tillage erosion, or deposition within a field; use [dm_sediment_yield()]
+  for delivery to streams.
+}
+
 \examples{
 dm_rusle(R = 800, K = 0.03, LS = 2.5, C = 0.3)
 A <- dm_rusle(R = dm_uncertain(800, cv = 0.15, lower = 0), K = 0.03,

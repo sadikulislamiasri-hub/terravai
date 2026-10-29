@@ -120,12 +120,37 @@ writeRaster(out, "soil_loss.tif")
 | Hydrologic soil group where only texture is known | `dm_texture_class()` (USDA), `dm_hsg_texture()` |
 | Conservation practice factor | `dm_p_factor()` (contouring, strip cropping) |
 | Region-specific limits | `dm_loss_tolerance(T_limit = )`, or a site-specific tolerance map (see `?dm_loss_tolerance`) |
-| Large rasters | D8 routing and flow accumulation handle about a million cells in about a second |
+| Real elevation models | Pits filled before routing (`dm_fill_sinks()`, Planchon-Darboux); D8 uses true cell sizes, also on longitude/latitude grids |
+| Large rasters | D8 routing and flow accumulation handle about a million cells in about a second; sink filling takes about 6 s for 250,000 cells |
 
 Regional coefficients that vary between places (rainfall erosivity relations,
 enrichment ratios, local C, P and curve-number tables, tolerance limits) are
 user inputs rather than hidden defaults, so the package applies equally to
 any state in India or any country.
+
+## Scope and limits
+
+* **Erosion processes.** (R)USLE and MUSLE estimate sheet and rill erosion.
+  They do not cover gully, ravine, landslide, streambank or tillage erosion,
+  which dominate in parts of the Chambal ravines, the Himalaya and the
+  Western Ghats.
+* **Steep slopes.** The slope factors were fitted on plots up to about 50%
+  slope; a warning is given where more than 5% of slopes are steeper.
+* **Runoff.** The curve number method is an event method. Use
+  `dm_runoff_cn_daily()` for daily rainfall series (antecedent moisture from
+  the previous five days), not annual totals.
+* **Erosivity.** `dm_erosivity_india()` returns R in the metric units of the
+  source equation; check that K uses matching units before multiplying.
+* **Empirical nutrient equations.** Valid within the range of the
+  ICAR-IISWC plot data; segments are discontinuous at breakpoints (see
+  `attr(dm_nutrient_coef(), "jumps")`).
+* **Dense methods.** Kriging, the closed-form value of information and the
+  Gaussian copula use dense covariance matrices: about 3,000-5,000 locations
+  on a laptop. For larger maps, use Monte Carlo draws and the ensemble value
+  of information (at least 1,000 draws; a warning is given below that).
+* **Validation.** Formula outputs are screening estimates. Calibrate C, P,
+  K and curve numbers against local runoff-plot data before using absolute
+  values for planning.
 
 ## Quick start (general decision engine)
 

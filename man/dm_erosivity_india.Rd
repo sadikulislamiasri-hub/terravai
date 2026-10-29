@@ -14,7 +14,11 @@ dm_erosivity_india(P, a = 79, b = 0.363, n_draws = 500, seed = NULL)
 \item{n_draws, seed}{Monte Carlo settings used when an input is uncertain.}
 }
 \value{
-Erosivity R.
+Erosivity R, in the metric units of the source equation. Indian
+  iso-erodent maps and equations have been published in more than one unit
+  system; check that the K factor is in matching units (for SI K in
+  t ha h ha-1 MJ-1 mm-1, R must be in MJ mm ha-1 h-1 yr-1) before
+  multiplying, and prefer a local or state equation where one exists.
 }
 \description{
 Estimates the RUSLE rainfall erosivity factor from mean annual rainfall

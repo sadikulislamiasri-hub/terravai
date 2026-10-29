@@ -44,8 +44,8 @@ test_that("ensemble VOI agrees with the Gaussian closed form", {
   expect_equal(sum(ve$voi) / sum(vg$voi), 1, tolerance = 0.2)
   expect_error(dm_voi(fit, l, method = "ensemble"), "draws")
   # auto picks the ensemble method for draws
-  expect_equal(attr(dm_voi(dm_draws(D[, 1:200]), l, candidates = 1:5, seed = 1), "method"),
-               "ensemble")
+  expect_equal(attr(suppressWarnings(dm_voi(dm_draws(D[, 1:200]), l, candidates = 1:5,
+                                             seed = 1)), "method"), "ensemble")
 })
 
 test_that("plain-language narration reports the decision", {

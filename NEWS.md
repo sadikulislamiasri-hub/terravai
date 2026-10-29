@@ -5,6 +5,22 @@ M Muruganandam and Rama Pal.
 
 * First release of TerravAI (Threshold Expected-Regret and Risk Analysis with
   Value of information and Artificial Intelligence), package `terravai`.
+* Correctness review (before first release):
+  * `dm_fill_sinks()`: Planchon-Darboux pit filling; `dm_erosion_raster()`
+    now fills sinks by default (`fill_sinks = TRUE`). On a noisy test DEM this
+    cut false outlets from 4,217 to 162.
+  * `dm_runoff_cn_daily()`: daily curve number runoff with antecedent
+    moisture from the previous five days' rainfall.
+  * `dm_flow_from_dem()` uses true cell spacing (`dx`, `dy`), including
+    metres on longitude/latitude grids.
+  * Formulas now keep the spatial correlation of Gaussian predictive inputs
+    with a full covariance (previously sampled independently).
+  * Formula inputs of incompatible lengths are now an error instead of being
+    silently recycled.
+  * `dm_outlet_load()` routes Monte Carlo draws one at a time in linear time
+    instead of building a dense routing matrix.
+  * Warnings for steep slopes beyond the (R)USLE plot data, and for ensemble
+    value of information with fewer than 1,000 draws.
 * Runoff, soil loss and nutrient loss:
   * `dm_runoff_cn()`, `dm_cn_amc()`, `dm_peak_rational()`: curve-number runoff,
     antecedent moisture adjustment and rational-method peak flow.

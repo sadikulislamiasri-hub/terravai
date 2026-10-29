@@ -180,6 +180,8 @@ dm_p_factor <- function(practice = c("none", "contouring", "strip_cropping"), sl
 #'   (as in SoilGrids).
 #' @param max_slope_length Cap on the specific catchment area used in the LS
 #'   factor (m), to avoid treating channels as hillslopes.
+#' @param fill_sinks Fill pits and flats before flow routing
+#'   ([dm_fill_sinks()]); strongly recommended for real elevation models.
 #' @return A `SpatRaster` with layers `slope` (degrees), `flow_acc` (cells),
 #'   `LS`, `C`, `K`, `P` and `A` (soil loss, t ha\eqn{^{-1}} yr\eqn{^{-1}}),
 #'   with the D8 flow directions attached as attribute `to` (for
@@ -198,7 +200,7 @@ dm_erosion_raster <- function(dem, R, ndvi = NULL, C = NULL, sand = NULL, silt =
                               clay = NULL, soc = NULL, K = NULL, P = 1,
                               texture_unit = c("percent", "g_kg"),
                               soc_unit = c("percent", "g_kg", "dg_kg"),
-                              max_slope_length = 300) {
+                              max_slope_length = 300, fill_sinks = TRUE) {
   if (!requireNamespace("terra", quietly = TRUE)) stop("Package 'terra' is needed.", call. = FALSE)
   if (!inherits(dem, "SpatRaster")) stop("'dem' must be a SpatRaster.", call. = FALSE)
   texture_unit <- match.arg(texture_unit); soc_unit <- match.arg(soc_unit)
@@ -221,12 +223,13 @@ dm_erosion_raster <- function(dem, R, ndvi = NULL, C = NULL, sand = NULL, silt =
   z <- terra::values(dem, mat = FALSE)
   slope <- terra::values(terra::terrain(dem, v = "slope", unit = "degrees"), mat = FALSE)
   slope[is.na(slope) & !is.na(z)] <- 0
-  to <- dm_flow_from_dem(dem)
+  to <- dm_flow_from_dem(if (fill_sinks) dm_fill_sinks(dem) else dem)
   acc <- dm_flow_accumulation(to)
   acc[is.na(z)] <- NA
   cell_m <- if (terra::is.lonlat(dem)) sqrt(terra::values(terra::cellSize(dem, unit = "m"),
                                                           mat = FALSE)) else
     rep(mean(terra::res(dem)), terra::ncell(dem))
+  .warn_steep(slope)
   As <- pmin(acc * cell_m, max_slope_length)
   LS <- (As / 22.13)^0.4 * (sin(pmax(slope, 0) * pi / 180) / 0.0896)^1.3
   Cv <- if (!is.null(C)) val(C, "C") else if (!is.null(ndvi)) {

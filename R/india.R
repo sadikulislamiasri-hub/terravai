@@ -169,7 +169,11 @@ dm_shc_rating <- function(x, parameter, table = dm_shc_table()) {
 #' @param P Mean annual rainfall (mm).
 #' @param a,b Coefficients (defaults from Singh et al., 1981).
 #' @param n_draws,seed Monte Carlo settings used when an input is uncertain.
-#' @return Erosivity R.
+#' @return Erosivity R, in the metric units of the source equation. Indian
+#'   iso-erodent maps and equations have been published in more than one unit
+#'   system; check that the K factor is in matching units (for SI K in
+#'   t ha h ha-1 MJ-1 mm-1, R must be in MJ mm ha-1 h-1 yr-1) before
+#'   multiplying, and prefer a local or state equation where one exists.
 #' @references Singh, G., Chandra, S. and Babu, R. (1981). Central Soil and
 #'   Water Conservation Research and Training Institute (now ICAR-Indian
 #'   Institute of Soil and Water Conservation), Dehradun. As cited in Indian

@@ -220,6 +220,11 @@ dm_voi <- function(pred, loss, candidates = NULL, noise = 0, target = NULL, n_qu
   }
   if (method == "ensemble") {
     if (is.null(pred$draws)) stop("method = 'ensemble' needs draws (see dm_draws()).", call. = FALSE)
+    if (ncol(pred$draws) < 1000) {
+      warning("Ensemble value of information with ", ncol(pred$draws), " draws: totals can be ",
+              "biased by several per cent; use at least 1000 draws (3000 for totals).",
+              call. = FALSE)
+    }
     res <- .with_seed(seed, .voi_ensemble(pred$draws, loss, cand, noise, target, n_outer,
                                           localize))
     voi <- res$voi; evpi <- res$evpi

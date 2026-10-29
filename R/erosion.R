@@ -123,6 +123,17 @@ dm_flow_accumulation <- function(to, weights = 1, delivery = 1) {
   acc
 }
 
+.warn_steep <- function(slope_deg, limit = 26.6) {
+  sv <- slope_deg[is.finite(slope_deg)]
+  if (length(sv) && mean(sv > limit) > 0.05) {
+    warning(sprintf("%.0f%% of slopes exceed %.1f degrees (50%%). The (R)USLE slope factors were ",
+                    100 * mean(sv > limit), limit),
+            "derived from plots on gentler slopes; estimates on steep terrain are extrapolations.",
+            call. = FALSE)
+  }
+  invisible(NULL)
+}
+
 #' Slope length and steepness (LS) factor
 #'
 #' Computes the topographic LS factor of the (Revised) Universal Soil Loss
@@ -143,7 +154,9 @@ dm_flow_accumulation <- function(to, weights = 1, delivery = 1) {
 #' @param cell_size Cell size (m) (method `"moore"`).
 #' @param length Slope length (m) (method `"wischmeier"`).
 #' @param method `"moore"` or `"wischmeier"`.
-#' @return LS factor (dimensionless).
+#' @return LS factor (dimensionless). A warning is given when more than 5\%
+#'   of slopes exceed 50\% (26.6 degrees), beyond the plot data on which the
+#'   (R)USLE slope relations were based.
 #' @references Moore, I. D. and Burch, G. J. (1986). Physical basis of the
 #'   length-slope factor in the Universal Soil Loss Equation. *Soil Science
 #'   Society of America Journal*, 50, 1294-1298.
@@ -159,6 +172,9 @@ dm_ls_factor <- function(slope, flow_acc = NULL, cell_size = NULL, length = NULL
                          method = c("moore", "wischmeier")) {
   method <- match.arg(method)
   .check_range(slope, "slope", 0, 90)
+  sv <- if (inherits(slope, "SpatRaster")) terra::values(slope[[1]], mat = FALSE) else
+    if (.is_uncertain(slope)) slope$mean else slope
+  .warn_steep(sv)
   if (method == "moore") {
     if (is.null(flow_acc) || is.null(cell_size)) {
       stop("method = 'moore' needs 'flow_acc' and 'cell_size'.", call. = FALSE)
@@ -279,6 +295,10 @@ dm_fournier <- function(monthly, a = NULL, b = NULL) {
 #' @param C Cover-management factor.
 #' @param P Support-practice factor (1 without conservation practices).
 #' @param n_draws,seed Monte Carlo settings used when an input is uncertain.
+#' @section Scope: (R)USLE estimates long-term average sheet and rill
+#'   erosion. It does not represent gully, ravine, landslide, streambank or
+#'   tillage erosion, or deposition within a field; use [dm_sediment_yield()]
+#'   for delivery to streams.
 #' @return Soil loss (t ha\eqn{^{-1}} yr\eqn{^{-1}}).
 #' @references Renard, K. G., Foster, G. R., Weesies, G. A., McCool, D. K. and
 #'   Yoder, D. C. (1997). *Predicting Soil Erosion by Water: A Guide to
@@ -485,9 +505,74 @@ dm_loss_nutrient <- function(limit, nutrient = "nutrient", ratio = 2, type = c("
 dm_outlet_load <- function(x, to, delivery = 1, cell_area = 1) {
   outlets <- which(is.na(to))
   if (inherits(x, "dm_predictive")) {
+    if (!is.null(x$draws)) {
+      # route every draw in linear time; no dense matrix needed
+      L <- vapply(seq_len(ncol(x$draws)), function(j) {
+        dm_flow_accumulation(to, weights = x$draws[, j] * cell_area, delivery = delivery)[outlets]
+      }, numeric(length(outlets)))
+      L <- matrix(L, nrow = length(outlets))
+      return(dm_draws(L))
+    }
+    if (length(to) > 5000) {
+      stop("For more than 5000 cells, pass draws (dm_draws) so loads can be routed per draw.",
+           call. = FALSE)
+    }
     H <- dm_flow_matrix(to, delivery)[outlets, , drop = FALSE] * cell_area
     return(dm_aggregate(x, H))
   }
   acc <- dm_flow_accumulation(to, weights = as.numeric(x) * cell_area, delivery = delivery)
   stats::setNames(acc[outlets], paste0("outlet_", outlets))
+}
+
+#' Daily runoff by the curve number method with antecedent moisture
+#'
+#' Applies the curve number method to each day of a rainfall series, adjusting
+#' the curve number for antecedent moisture condition (AMC) from the rainfall
+#' of the previous five days (USDA SCS National Engineering Handbook, Section
+#' 4). The curve number method is an event method; summing daily runoff is the
+#' valid way to estimate seasonal or annual runoff, rather than applying the
+#' method to annual rainfall.
+#'
+#' @param P Daily rainfall (mm): a numeric vector (one location) or a matrix
+#'   with one row per location and one column per day.
+#' @param CN Curve number for AMC II: one value or one per location. With a
+#'   single rainfall series and several curve numbers, the series is applied
+#'   to each.
+#' @param growing Logical, one per day (or one value): whether the day falls
+#'   in the growing season, which sets the AMC limits (growing season: below
+#'   35.6 mm is AMC I, above 53.3 mm AMC III; dormant season: 12.7 and
+#'   27.9 mm).
+#' @param lambda Initial abstraction ratio.
+#' @return A list with `daily` (runoff matrix, mm, locations by days),
+#'   `total` (runoff per location, mm), `amc` (AMC class per location and day)
+#'   and `coefficient` (total runoff / total rainfall).
+#' @examples
+#' set.seed(1)
+#' rain <- ifelse(runif(120) < 0.3, rexp(120, 1 / 25), 0)
+#' out <- dm_runoff_cn_daily(rain, CN = 78)
+#' out$total; out$coefficient
+#' table(out$amc)
+#' @export
+dm_runoff_cn_daily <- function(P, CN, growing = TRUE, lambda = 0.2) {
+  P <- if (is.matrix(P)) P else matrix(P, nrow = 1)
+  .check_range(P, "P", 0); .check_range(CN, "CN", 1, 100)
+  if (nrow(P) == 1L && length(CN) > 1L) P <- P[rep(1L, length(CN)), , drop = FALSE]
+  nl <- nrow(P); nd <- ncol(P)
+  if (!length(CN) %in% c(1L, nl)) stop("'CN' must have length 1 or ", nl, ".", call. = FALSE)
+  if (!length(growing) %in% c(1L, nd)) stop("'growing' must have length 1 or ", nd, ".", call. = FALSE)
+  CN <- rep_len(CN, nl); growing <- rep_len(as.logical(growing), nd)
+  cn1 <- dm_cn_amc(CN, "I"); cn3 <- pmin(dm_cn_amc(CN, "III"), 100)
+  Q <- A <- matrix(NA, nl, nd)
+  for (d in seq_len(nd)) {
+    ant <- if (d == 1L) rep(0, nl) else rowSums(P[, max(1L, d - 5L):(d - 1L), drop = FALSE])
+    lo <- if (growing[d]) 35.6 else 12.7; hi <- if (growing[d]) 53.3 else 27.9
+    amc <- ifelse(ant < lo, 1L, ifelse(ant > hi, 3L, 2L))
+    cn <- ifelse(amc == 1L, cn1, ifelse(amc == 3L, cn3, CN))
+    S <- 25400 / cn - 254; Ia <- lambda * S
+    Q[, d] <- ifelse(P[, d] > Ia, (P[, d] - Ia)^2 / (P[, d] - Ia + S), 0)
+    A[, d] <- amc
+  }
+  tot <- rowSums(Q)
+  list(daily = Q, total = tot, amc = factor(A, 1:3, c("I", "II", "III")),
+       coefficient = tot / pmax(rowSums(P), .Machine$double.eps))
 }

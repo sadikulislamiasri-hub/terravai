@@ -49,6 +49,18 @@ runoff$mean <- 25 * runoff$mean; runoff$sd <- 25 * runoff$sd
 summary(runoff$mean)
 ```
 
+The curve number method is an event method, so the division into 25 equal
+storms above is only a rough shortcut. With a daily rainfall series, run the
+method day by day; the antecedent moisture condition then follows the rainfall
+of the previous five days:
+
+```{r}
+set.seed(7)
+rain_daily <- ifelse(runif(122) < 0.35, rexp(122, 1 / 28), 0)  # one monsoon season
+d <- dm_runoff_cn_daily(rain_daily, CN = c(70, 80, 88))
+round(d$total); round(d$coefficient, 2)
+```
+
 ## 3. Soil loss by RUSLE, with uncertainty
 
 The LS factor comes from the terrain, the C factor from NDVI and the K factor
@@ -58,11 +70,11 @@ from soil texture and organic carbon. Erosivity and cover are uncertain.
 soil <- dm_rusle(R = dm_uncertain(g$R, cv = 0.15, lower = 0, coords = xy),
                  K = g$K, LS = g$ls,
                  C = dm_uncertain(g$C, sd = 0.05, lower = 0, upper = 1, coords = xy),
-                 n_draws = 300, seed = 2)
+                 n_draws = 1000, seed = 2)
 soil
 ```
 
-Are 300 draws enough? `dm_convergence()` checks the Monte Carlo error:
+Are 1000 draws enough? `dm_convergence()` checks the Monte Carlo error:
 
 ```{r}
 dm_convergence(soil, dm_loss_tolerance())
@@ -147,7 +159,9 @@ compared in the same way, and their predictions used in every step above.
 ## 9. Your own region
 
 The same chain runs on real rasters anywhere, from a district in India to a
-whole country, on projected or longitude/latitude grids:
+whole country, on projected or longitude/latitude grids. Pits in the elevation model are
+filled before flow routing (`fill_sinks = TRUE`, see `dm_fill_sinks()`), and a
+warning is given where many slopes are steeper than the RUSLE plot data:
 
 ```{r, eval = requireNamespace("terra", quietly = TRUE)}
 dem <- terra::rast(nrows = 40, ncols = 40, xmin = 78, xmax = 78.04,
