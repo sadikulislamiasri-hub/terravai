@@ -5,6 +5,21 @@ M Muruganandam and Rama Pal.
 
 * First release of TerravAI (Threshold Expected-Regret and Risk Analysis with
   Value of information and Artificial Intelligence), package `terravai`.
+* Runoff, soil loss and nutrient loss:
+  * `dm_runoff_cn()`, `dm_cn_amc()`, `dm_peak_rational()`: curve-number runoff,
+    antecedent moisture adjustment and rational-method peak flow.
+  * `dm_rusle()` with `dm_ls_factor()`, `dm_c_ndvi()`, `dm_k_epic()` and
+    `dm_fournier()`; `dm_musle()`; `dm_sediment_yield()`.
+  * `dm_nutrient_sediment()`, `dm_nutrient_runoff()`, `dm_enrichment()`:
+    nutrient loss by mass balance.
+  * `dm_nutrient_empirical()` and `dm_nutrient_coef()`: empirical N, P and K
+    loss equations from ICAR-IISWC runoff-plot data (first released in
+    SoilRunNutri; contributors Soumya Pant, Gopal Kumar and M. Madhu).
+  * `dm_uncertain()`: uncertain inputs carried through every formula.
+  * `dm_flow_accumulation()` (linear time) and `dm_outlet_load()`.
+  * `dm_loss_tolerance()` and `dm_loss_nutrient()` decision presets.
+  * `dm_simulate_watershed()`: example micro-watershed with known truth.
+  * New vignette on runoff, soil loss and nutrient loss.
 * Predictive distributions from means and standard deviations, covariance
   matrices, simulation draws or `terra` rasters.
 * AI and machine learning:

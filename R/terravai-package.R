@@ -1,4 +1,4 @@
-#' terravai: Spatial Value of Information from AI Predictions
+#' terravai: AI-Driven Runoff, Soil and Nutrient Loss Decisions
 #'
 #' TerravAI (Threshold Expected-Regret and Risk Analysis with Value of
 #' information and Artificial Intelligence; package `terravai`) turns the predictive distribution of any
@@ -8,10 +8,16 @@
 #' decision would flip, and where new data would be worth the most.
 #'
 #' @section Workflow:
+#' 0. Quantify runoff, soil loss and nutrient loss with [dm_runoff_cn()],
+#'    [dm_rusle()] (with [dm_ls_factor()], [dm_c_ndvi()], [dm_k_epic()],
+#'    [dm_fournier()]), [dm_musle()], [dm_nutrient_sediment()],
+#'    [dm_nutrient_runoff()] and [dm_nutrient_empirical()]; make any input
+#'    uncertain with [dm_uncertain()]; route loads with [dm_outlet_load()].
 #' 1. Describe predictions with [dm_gaussian()], [dm_draws()],
 #'    [dm_quantiles()] or [dm_conformal()], fit a quantile regression forest
 #'    with [dm_fit_qrf()], or fit kriging with [dm_fit_cov()] and [dm_krige()].
-#' 2. Describe the decision with [dm_loss()].
+#' 2. Describe the decision with [dm_loss()], [dm_loss_tolerance()] or
+#'    [dm_loss_nutrient()].
 #' 3. Map decisions with [dm_decide()] and summarise them in plain language
 #'    with [dm_narrate()].
 #' 4. Map the value of new samples with [dm_voi()] and plan a survey with

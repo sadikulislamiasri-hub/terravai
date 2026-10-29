@@ -1,6 +1,6 @@
 Package: terravai
 Type: Package
-Title: Spatial Value of Information from AI Predictions
+Title: AI-Driven Runoff, Soil and Nutrient Loss Decisions
 Version: 0.1.0
 Authors@R: c(
     person("Sadikul", "Islam", email = "sadikul.islamiasri@gmail.com",
@@ -10,20 +10,34 @@ Authors@R: c(
     person("M", "Shankar", role = "aut"),
     person("M", "Muruganandam", role = "aut"),
     person("Rama", "Pal", role = "aut"),
+    person("Soumya", "Pant", role = "ctb",
+           comment = "Empirical nutrient-loss equations (SoilRunNutri)"),
+    person("Gopal", "Kumar", role = "ctb",
+           comment = "Empirical nutrient-loss equations (SoilRunNutri)"),
+    person("M", "Madhu", role = "ctb",
+           comment = "Empirical nutrient-loss equations (SoilRunNutri)"),
     person("Indian Council of Agricultural Research", role = "fnd",
            comment = "Project NRMAIISWCSIL202400300220, ICAR-Indian Institute of Soil and Water Conservation, Dehradun"))
-Description: Turns the predictive distribution of any spatial model, from
-    kriging and Bayesian models to artificial intelligence (AI) and machine
-    learning models such as quantile regression forests, deep ensembles and
-    conformal predictors, into decisions for threshold problems such as
-    liming, fertiliser targeting or declaring a well unsafe. Provides
-    decision, expected-loss, regret and break-even cost-ratio maps;
-    value-of-information maps, in closed form under Gaussian updating or by
-    an ensemble Kalman preposterior update that keeps the non-Gaussian shape
-    of machine-learning ensembles; greedy budget-constrained sampling designs
-    with a value-based stopping rule; decision-based comparison of competing
-    maps, including ranking reversals between accuracy and decision regret;
-    and a scale operator that carries every computation from pixels to
+Description: Quantifies runoff, soil loss and nutrient loss with their
+    uncertainty and turns them into conservation decisions. Formula-based
+    tools include runoff by the curve number method, peak flow by the
+    rational method, soil loss by the Revised Universal Soil Loss Equation
+    with its factors (slope length and steepness from terrain, cover from the
+    normalised difference vegetation index, erodibility from soil texture,
+    and a rainfall erosivity index), storm sediment yield by the Modified
+    Universal Soil Loss Equation, nutrient loss by mass balance with
+    enrichment ratios, empirical nitrogen, phosphorus and potassium loss
+    equations from Indian runoff-plot experiments, and flow routing of loads
+    to watershed outlets. Any input can be uncertain, and the predictive
+    distribution of any spatial model, from kriging to artificial
+    intelligence (AI) models such as quantile regression forests, deep
+    ensembles and conformal predictors, can be used in place of a formula.
+    Decision tools then map where soil loss exceeds a tolerable limit or
+    nutrient loss exceeds a target, with expected-loss, regret and
+    break-even cost-ratio maps; value-of-information maps, in closed form or
+    by an ensemble Kalman update for non-Gaussian AI ensembles; greedy
+    budget-constrained designs for new runoff plots; decision-based
+    comparison of competing models; and scale operators from pixels to
     districts and watersheds. Machine-learning predictive quantiles are
     joined across space with a spatial Gaussian copula. Also includes a
     dependency-free kriging engine and plain-language summaries of decision
@@ -36,6 +50,7 @@ Description: Turns the predictive distribution of any spatial model, from
     'TerravAI' stands for Threshold Expected-Regret and Risk Analysis with
     Value of information and Artificial Intelligence.
 License: MIT + file LICENSE
+Copyright: See inst/COPYRIGHTS for the empirical nutrient-loss coefficients.
 Language: en-GB
 Encoding: UTF-8
 Depends: R (>= 4.1.0)

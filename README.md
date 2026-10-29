@@ -6,9 +6,12 @@
 
 **TerravAI: Threshold Expected-Regret and Risk Analysis with Value of information and Artificial Intelligence**
 
-*Spatial value of information from AI predictions*
+*AI-driven runoff, soil and nutrient loss decisions*
 
-TerravAI (R package `terravai`) turns the predictive distribution of any
+TerravAI (R package `terravai`) quantifies **runoff, soil loss and nutrient
+loss** with their uncertainty, from formulas (curve number, RUSLE, MUSLE,
+nutrient mass balance, ICAR-IISWC N/P/K equations) or AI models, and turns
+them into conservation decisions. It turns the predictive distribution of any
 spatial model, from kriging to AI and machine-learning ensembles, into
 decision maps, expected-loss and regret maps, value-of-information maps and
 budget-optimal sampling plans at pixel, district and watershed scales.
@@ -28,7 +31,34 @@ decision it informs.
 remotes::install_github("GITHUB_USER/terravai")
 ```
 
-## Quick start
+## Runoff, soil loss and nutrient loss
+
+```r
+library(terravai)
+ws <- dm_simulate_watershed(seed = 3)          # example micro-watershed
+g  <- ws$grid
+xy <- g[, c("x", "y")]
+
+# Soil loss by RUSLE with uncertain erosivity and cover
+soil <- dm_rusle(R  = dm_uncertain(g$R, cv = 0.15, lower = 0, coords = xy),
+                 K  = g$K, LS = g$ls,
+                 C  = dm_uncertain(g$C, sd = 0.05, lower = 0, upper = 1, coords = xy),
+                 seed = 1)
+
+# Where is soil loss above the tolerable limit (11.2 t/ha/yr)?
+dec <- dm_decide(soil, dm_loss_tolerance())
+plot(dec, "act"); dm_narrate(dec, area = "the micro-watershed")
+
+# Nutrient loss: mass balance and ICAR-IISWC empirical equations
+N_mb  <- dm_nutrient_sediment(soil, content = 0.08, unit = "percent", enrichment = 1.6)
+N_emp <- dm_nutrient_empirical(soil, "N", "soil")
+
+# Load at the outlet and the best places for new runoff plots
+dm_outlet_load(soil$mean, ws$to, delivery = 0.9, cell_area = 0.09)
+plot(dm_voi(soil, dm_loss_tolerance(), method = "ensemble", seed = 1))
+```
+
+## Quick start (general decision engine)
 
 ```r
 library(terravai)
@@ -66,6 +96,13 @@ summary(ev)
 
 | Step | Functions |
 |---|---|
+| **Runoff:** curve number, moisture adjustment, rational peak flow | `dm_runoff_cn()`, `dm_cn_amc()`, `dm_peak_rational()` |
+| **Soil loss:** RUSLE and factors, MUSLE, sediment delivery | `dm_rusle()`, `dm_ls_factor()`, `dm_c_ndvi()`, `dm_k_epic()`, `dm_fournier()`, `dm_musle()`, `dm_sediment_yield()` |
+| **Nutrient loss:** mass balance, enrichment, ICAR-IISWC N/P/K equations | `dm_nutrient_sediment()`, `dm_nutrient_runoff()`, `dm_enrichment()`, `dm_nutrient_empirical()`, `dm_nutrient_coef()` |
+| **Uncertain inputs** for any formula | `dm_uncertain()` |
+| **Watershed routing** | `dm_flow_from_dem()`, `dm_flow_accumulation()`, `dm_outlet_load()` |
+| **Conservation decisions** | `dm_loss_tolerance()`, `dm_loss_nutrient()` |
+| **Example micro-watershed** with known truth | `dm_simulate_watershed()` |
 | Predictive distributions from any model | `dm_gaussian()`, `dm_draws()` (also from `terra` rasters) |
 | **AI:** quantile regression forests with a spatial copula | `dm_fit_qrf()`, `dm_quantiles(copula = )` |
 | **AI:** conformal predictive distributions for any point predictor | `dm_conformal()` |
@@ -102,6 +139,13 @@ citation("terravai")
 - M Shankar (author)
 - M Muruganandam (author)
 - Rama Pal (author)
+
+## Contributors
+
+The empirical nitrogen, phosphorus and potassium loss equations
+(`dm_nutrient_empirical()`) were first released in the Python package
+SoilRunNutri by Soumya Pant, Sadikul Islam, Gopal Kumar and M. Madhu; see
+`inst/COPYRIGHTS`.
 
 ## Acknowledgements
 

@@ -57,7 +57,9 @@
   graphics::par(mar = c(2.5, 0.2, 3, 0.5))
   graphics::plot.new()
   if (discrete) {
-    graphics::legend("center", legend = labels, fill = cols, bty = "n", cex = 0.85)
+    wrapped <- vapply(labels, function(l) paste(strwrap(l, 13), collapse = "\n"), "")
+    graphics::legend("left", legend = wrapped, fill = cols, bty = "n", cex = 0.75,
+                     y.intersp = 1.8, inset = 0, xpd = NA)
   } else {
     graphics::plot.window(c(0, 1), c(0, 1))
     yb <- seq(0.1, 0.85, length.out = 65)

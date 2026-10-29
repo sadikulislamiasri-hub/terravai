@@ -1,0 +1,135 @@
+---
+title: "Runoff, soil loss and nutrient loss: from formulas and AI to conservation decisions"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Runoff, soil loss and nutrient loss: from formulas and AI to conservation decisions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5,
+                      fig.height = 4.4, dpi = 80)
+```
+
+This vignette follows the workflow of the ICAR project *Development of
+AI-driven solutions for quantifying runoff induced soil loss and nutrient
+loss*: quantify runoff, soil loss and nutrient loss with their uncertainty,
+decide where conservation is needed, and choose where new measurements would
+help most.
+
+```{r setup}
+library(terravai)
+```
+
+## 1. A micro-watershed
+
+`dm_simulate_watershed()` builds an 81 ha micro-watershed (30 m cells) with
+terrain, vegetation, soils and rainfall, "true" runoff, soil loss and N, P, K
+losses, and 40 runoff plots with measurements.
+
+```{r}
+ws <- dm_simulate_watershed(n_side = 30, seed = 3)
+ws
+g <- ws$grid
+xy <- g[, c("x", "y")]
+```
+
+## 2. Runoff by the curve number method
+
+Annual runoff is approximated by 25 storms. The curve number is uncertain, so
+it is given as a distribution; the result is a predictive distribution of
+runoff.
+
+```{r}
+cn <- dm_uncertain(g$cn, sd = 4, lower = 30, upper = 100, coords = xy)
+runoff <- dm_runoff_cn(P = g$rain / 25, CN = cn, n_draws = 300, seed = 1)
+runoff$draws <- 25 * runoff$draws
+runoff$mean <- 25 * runoff$mean; runoff$sd <- 25 * runoff$sd
+summary(runoff$mean)
+```
+
+## 3. Soil loss by RUSLE, with uncertainty
+
+The LS factor comes from the terrain, the C factor from NDVI and the K factor
+from soil texture and organic carbon. Erosivity and cover are uncertain.
+
+```{r}
+soil <- dm_rusle(R = dm_uncertain(g$R, cv = 0.15, lower = 0, coords = xy),
+                 K = g$K, LS = g$ls,
+                 C = dm_uncertain(g$C, sd = 0.05, lower = 0, upper = 1, coords = xy),
+                 n_draws = 300, seed = 2)
+soil
+```
+
+## 4. Where is soil loss above the tolerable limit?
+
+```{r, fig.height = 4.2}
+dec <- dm_decide(soil, dm_loss_tolerance(T_limit = 11.2, ratio = 3))
+summary(dec)
+plot(dec, "act")
+plot(dec, "p_wrong")
+dm_narrate(dec, area = "the micro-watershed")
+```
+
+## 5. Nutrient loss
+
+**Formula-based mass balance:** sediment-bound loss from soil loss, nutrient
+content and enrichment ratio, plus dissolved loss in runoff.
+
+```{r}
+N_formula <- dm_nutrient_sediment(soil, content = 0.08, unit = "percent",
+                                  enrichment = 1.6, seed = 3)
+summary(N_formula$mean)
+```
+
+**Empirical ICAR-IISWC equations** relating N, P and K loss to soil loss or
+runoff percentage:
+
+```{r}
+N_emp <- dm_nutrient_empirical(soil, "N", "soil", seed = 3)
+summary(N_emp$mean)
+head(attr(dm_nutrient_coef(), "jumps"))
+```
+
+The empirical segments are not continuous at their breakpoints (see the
+`jumps` table and the Caution section of `?dm_nutrient_empirical`), so
+estimates close to 5, 10 or 20 t/ha need care.
+
+Decision on nitrogen loss:
+
+```{r, fig.height = 4.2}
+plot(dm_decide(N_formula, dm_loss_nutrient(15, "N")), "p_need")
+```
+
+## 6. Load at the watershed outlet
+
+```{r}
+cell_ha <- (ws$cell_size^2) / 1e4
+dm_outlet_load(soil$mean, ws$to, delivery = 0.9, cell_area = cell_ha)
+```
+
+## 7. Where should new runoff plots go?
+
+Value of information for the tolerance decision, from the Monte Carlo
+ensemble of soil loss:
+
+```{r, fig.height = 4.2}
+v <- dm_voi(soil, dm_loss_tolerance(), method = "ensemble",
+            candidates = seq(1, nrow(g), by = 3), seed = 4)
+plot(v, main = "Value of a new runoff plot")
+```
+
+## 8. Is the model good enough? Formula versus measurements
+
+Compare RUSLE with the "true" soil loss by accuracy and by decision regret:
+
+```{r}
+ev <- dm_evaluate(g$soil_loss,
+                  list(rusle_decision = soil, rusle_plugin = soil$mean),
+                  dm_loss_tolerance(), ratios = c(1, 3, 10))
+summary(ev)
+```
+
+AI models trained on runoff-plot data (`dm_fit_qrf()`, `dm_conformal()`) can be
+compared in the same way, and their predictions used in every step above.
