@@ -4,7 +4,9 @@
 [![R-CMD-check](https://github.com/GITHUB_USER/terravai/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/GITHUB_USER/terravai/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-**Value of Information for Spatial Decisions from AI Predictions**
+**TerravAI: Threshold Expected-Regret and Risk Analysis with Value of information and Artificial Intelligence**
+
+*Value of information for spatial decisions from AI predictions*
 
 TerravAI (R package `terravai`) turns the predictive distribution of any
 spatial model, from kriging to AI and machine-learning ensembles, into

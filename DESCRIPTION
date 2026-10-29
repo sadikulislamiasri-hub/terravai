@@ -5,7 +5,9 @@ Version: 0.1.0
 Authors@R:
     person("Sadikul", "Islam", email = "sadikul.islamiasri@gmail.com",
            role = c("aut", "cre", "cph"))
-Description: Turns the predictive distribution of any spatial model, from
+Description: 'TerravAI' (Threshold Expected-Regret and Risk Analysis with
+    Value of information and Artificial Intelligence) turns the predictive
+    distribution of any spatial model, from
     kriging and Bayesian models to artificial intelligence (AI) and machine
     learning models such as quantile regression forests, deep ensembles and
     conformal predictors, into decisions for threshold problems such as

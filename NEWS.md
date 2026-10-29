@@ -1,6 +1,7 @@
 # terravai 0.1.0
 
-* First release of TerravAI (package `terravai`).
+* First release of TerravAI (Threshold Expected-Regret and Risk Analysis with
+  Value of information and Artificial Intelligence), package `terravai`.
 * Predictive distributions from means and standard deviations, covariance
   matrices, simulation draws or `terra` rasters.
 * AI and machine learning:

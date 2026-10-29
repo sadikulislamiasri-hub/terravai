@@ -6,7 +6,8 @@
 \alias{terravai-package}
 \title{terravai: Value of Information for Spatial Decisions from AI Predictions}
 \description{
-TerravAI (package `terravai`) turns the predictive distribution of any
+TerravAI (Threshold Expected-Regret and Risk Analysis with Value of
+information and Artificial Intelligence; package `terravai`) turns the predictive distribution of any
 spatial model, from kriging to AI and machine-learning ensembles, into the
 quantities a decision-maker needs: which action to take where, the expected
 loss and probability of a wrong decision, the cost ratio at which each

@@ -12,6 +12,8 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5,
                       fig.height = 4.6, dpi = 80)
 ```
 
+**TerravAI** stands for *Threshold Expected-Regret and Risk Analysis with Value of information and Artificial Intelligence*.
+
 Most spatial maps are judged by how accurate they are. Most maps are used to
 *decide*: lime a field when pH is low, target zinc where crops are deficient,
 stop drinking from a well when arsenic is high. `terravai` evaluates and
