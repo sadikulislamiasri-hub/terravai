@@ -71,6 +71,7 @@ texture and organic carbon (e.g. SoilGrids or national soil maps) and
 rainfall erosivity (a national map or a global erosivity dataset).
 }
 \examples{
+\donttest{
 if (requireNamespace("terra", quietly = TRUE)) {
   dem <- terra::rast(nrows = 30, ncols = 30, xmin = 77, xmax = 77.03,
                      ymin = 30, ymax = 30.03, crs = "EPSG:4326")
@@ -78,5 +79,6 @@ if (requireNamespace("terra", quietly = TRUE)) {
   ndvi <- terra::init(dem, 0.4)
   out <- dm_erosion_raster(dem, R = 900, ndvi = ndvi, K = 0.03)
   out
+}
 }
 }

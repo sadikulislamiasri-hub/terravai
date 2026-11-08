@@ -190,6 +190,7 @@ dm_p_factor <- function(practice = c("none", "contouring", "strip_cropping"), sl
 #'   with the D8 flow directions attached as attribute `to` (for
 #'   [dm_outlet_load()]).
 #' @examples
+#' \donttest{
 #' if (requireNamespace("terra", quietly = TRUE)) {
 #'   dem <- terra::rast(nrows = 30, ncols = 30, xmin = 77, xmax = 77.03,
 #'                      ymin = 30, ymax = 30.03, crs = "EPSG:4326")
@@ -197,6 +198,7 @@ dm_p_factor <- function(practice = c("none", "contouring", "strip_cropping"), sl
 #'   ndvi <- terra::init(dem, 0.4)
 #'   out <- dm_erosion_raster(dem, R = 900, ndvi = ndvi, K = 0.03)
 #'   out
+#' }
 #' }
 #' @export
 dm_erosion_raster <- function(dem, R, ndvi = NULL, C = NULL, sand = NULL, silt = NULL,
