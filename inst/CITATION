@@ -6,5 +6,5 @@ bibentry(
              person("M", "Muruganandam"), person("Rama", "Pal")),
   year = "2026",
   note = "R package terravai version 0.1.0",
-  url = "https://github.com/GITHUB_USER/terravai"
+  url = "https://github.com/sadikulislamiasri-hub/terravai"
 )

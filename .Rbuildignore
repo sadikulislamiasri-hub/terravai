@@ -11,3 +11,5 @@
 ^tools$
 ^SUBMISSION\.md$
 ^CITATION\.cff$
+^\.positai$
+^\.claude$

@@ -1,7 +1,7 @@
 # TerravAI <img src="man/figures/logo.png" align="right" height="139" alt="TerravAI logo" />
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/GITHUB_USER/terravai/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/GITHUB_USER/terravai/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/sadikulislamiasri-hub/terravai/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sadikulislamiasri-hub/terravai/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 **TerravAI: Threshold Expected-Regret and Risk Analysis with Value of information and Artificial Intelligence**
@@ -28,7 +28,7 @@ decision it informs.
 ```r
 # Development version from GitHub
 # install.packages("remotes")
-remotes::install_github("GITHUB_USER/terravai")
+remotes::install_github("sadikulislamiasri-hub/terravai")
 ```
 
 ## Runoff, soil loss and nutrient loss

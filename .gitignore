@@ -6,3 +6,7 @@
 *.tar.gz
 inst/doc
 docs
+src/*.o
+src/*.so
+src/*.dll
+.positai

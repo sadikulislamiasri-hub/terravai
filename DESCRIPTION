@@ -10,8 +10,6 @@ Authors@R: c(
     person("M", "Shankar", role = "aut"),
     person("M", "Muruganandam", role = "aut"),
     person("Rama", "Pal", role = "aut"),
-    person("Soumya", "Pant", role = "ctb",
-           comment = "Empirical nutrient-loss equations (SoilRunNutri)"),
     person("Gopal", "Kumar", role = "ctb",
            comment = "Empirical nutrient-loss equations (SoilRunNutri)"),
     person("M", "Madhu", role = "ctb",
@@ -57,23 +55,30 @@ Description: Quantifies runoff, soil loss and nutrient loss with their
     'TerravAI' stands for Threshold Expected-Regret and Risk Analysis with
     Value of information and Artificial Intelligence.
 License: MIT + file LICENSE
-Copyright: See inst/COPYRIGHTS for the empirical nutrient-loss coefficients.
+Copyright: See inst/COPYRIGHTS for the empirical nutrient-loss
+        coefficients.
 Language: en-GB
 Encoding: UTF-8
 Depends: R (>= 4.1.0)
-Imports:
-    graphics,
-    grDevices,
-    stats,
-    utils
-Suggests:
-    knitr,
-    ranger,
-    rmarkdown,
-    terra,
-    testthat (>= 3.0.0)
+Imports: graphics, grDevices, stats, utils
+Suggests: knitr, ranger, rmarkdown, terra, testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
-RoxygenNote: 7.3.1
-URL: https://github.com/GITHUB_USER/terravai
-BugReports: https://github.com/GITHUB_USER/terravai/issues
+URL: https://github.com/sadikulislamiasri-hub/terravai
+BugReports: https://github.com/sadikulislamiasri-hub/terravai/issues
+Config/roxygen2/version: 8.1.1
+NeedsCompilation: yes
+Packaged: 2026-11-07 09:25:22 UTC; HP
+Author: Sadikul Islam [aut, cre] (ORCID:
+    <https://orcid.org/0000-0003-2924-7122>),
+  Rajesh Kaushal [aut],
+  Shakir Ali [aut],
+  M Shankar [aut],
+  M Muruganandam [aut],
+  Rama Pal [aut],
+  Gopal Kumar [ctb] (Empirical nutrient-loss equations (SoilRunNutri)),
+  M Madhu [ctb] (Empirical nutrient-loss equations (SoilRunNutri)),
+  Indian Council of Agricultural Research [fnd] (Project
+    NRMAIISWCSIL202400300220, ICAR-Indian Institute of Soil and Water
+    Conservation, Dehradun)
+Maintainer: Sadikul Islam <sadikul.islamiasri@gmail.com>

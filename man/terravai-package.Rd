@@ -73,8 +73,8 @@ and spatial information. *Spatial Statistics*, 50, 100619.
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/GITHUB_USER/terravai}
-  \item Report bugs at \url{https://github.com/GITHUB_USER/terravai/issues}
+  \item \url{https://github.com/sadikulislamiasri-hub/terravai}
+  \item Report bugs at \url{https://github.com/sadikulislamiasri-hub/terravai/issues}
 }
 
 }
@@ -83,6 +83,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Sadikul Islam \email{sadikul.islamiasri@gmail.com} (\href{https://orcid.org/0000-0003-2924-7122}{ORCID})
   \item Rajesh Kaushal
   \item Shakir Ali
   \item M Shankar
@@ -92,7 +93,6 @@ Authors:
 
 Other contributors:
 \itemize{
-  \item Soumya Pant (Empirical nutrient-loss equations (SoilRunNutri)) [contributor]
   \item Gopal Kumar (Empirical nutrient-loss equations (SoilRunNutri)) [contributor]
   \item M Madhu (Empirical nutrient-loss equations (SoilRunNutri)) [contributor]
   \item Indian Council of Agricultural Research (Project NRMAIISWCSIL202400300220, ICAR-Indian Institute of Soil and Water Conservation, Dehradun) [funder]
